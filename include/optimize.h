@@ -17,11 +17,20 @@ namespace optimize{
                                             std::pair<double, double> &interval,
                                             const double e = epsilon);
 
-    std::vector<double> coord_search(const std::vector<double> &starting_point, 
+    std::vector<double> coord_search(std::function<double(std::vector<double>)> func,
+                                     const std::vector<double> &starting_point, 
                                      const std::vector<double> &e);
+    
 
-    
-    
+    // helper functions for coord_search
+    static bool compare_points(std::vector<double> p1,
+                               std::vector<double> p2,
+                               std::vector<double> e);
+    static std::vector<double> axis_min(std::function<double(std::vector<double>)> func,
+                                        std::vector<double> &point,
+                                        int axis_index,
+                                        double epsilon);
+
 
 }
 

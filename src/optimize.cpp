@@ -67,8 +67,83 @@ std::pair<double, double> optimize::golden_search(
 }
 
 
-std::vector<double> optimize::coord_search(const std::vector<double>& point,
+std::vector<double> optimize::coord_search(std::function<double(std::vector<double>)> func,
+                                           const std::vector<double>& point,
                                            const std::vector<double>& e){
 
+    if(point.size() != e.size()){
+       throw "Point dimension does not match epsilon dimension";
+    }
 
+    std::vector<double> minimum = point;
+    std::vector<double> prev_min;
+    do{
+        prev_min = minimum;
+        for(int i = 0; i < e.size(); i++){
+            minimum = axis_min(func, minimum, i, e[i]);
+        }
+    }while(!compare_points(prev_min, minimum, e));
+
+
+    return minimum;
 }
+
+static bool optimize::compare_points(std::vector<double> p1,
+                           std::vector<double> p2,
+                           std::vector<double> e){
+    
+    /*double sum_p1 = 0, avg_p1 = 0;
+    double sum_p2 = 0, avg_p2 = 0;
+    double sum_e = 0, avg_e = 0;
+
+    // assuming p1 and p2 dimensions are same
+    for(int i = 0; i < p1.size(); i++){
+        sum_p1 += p1[i];
+        sum_p2 += p2[i];
+        sum_e += e[i];
+    }
+
+    avg_p1 = sum_p1 / p1.size();
+    avg_p2 = sum_p2 / p2.size();
+    avg_e = sum_e / e.size();
+
+    if(fabs(avg_p1 - avg_p2) < avg_e)
+        return true;
+    return false;*/
+
+    for(int i = 0;i<e.size();i++){
+        if(fabs(p1[i] - p2[i]) > e[i]){
+            return false;
+        }
+    }
+    return true;
+}
+
+static std::vector<double> optimize::axis_min(
+                               std::function<double(std::vector<double>)> func,
+                               std::vector<double> &point,
+                               int axis_index,
+                               double epsilon){
+
+    int direction = 1;
+    std::vector<double> test_point = point;
+    test_point[axis_index] += direction * epsilon;
+
+    if(func(test_point) > func(point)){
+        direction *= -1;
+        test_point = point;
+        test_point[axis_index] += direction * epsilon;
+    }
+
+    std::vector<double> previous_point = point;
+    std::vector<double> new_point = previous_point;
+    new_point[axis_index] += direction * epsilon;
+    
+    while(func(new_point) < func(previous_point)){
+        previous_point = new_point;
+        new_point[axis_index] += direction * epsilon;
+    }
+    
+    return previous_point;
+}
+
