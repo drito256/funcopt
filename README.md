@@ -1,1 +1,1 @@
-Showcase of various methods that find function minimum without taking derivatives
+An overview of methods for finding a function’s minimum without requiring derivatives
