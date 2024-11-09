@@ -18,7 +18,7 @@ namespace optimize{
                                             const double e = epsilon);
 
     std::vector<double> coord_search(const std::vector<double> &starting_point, 
-                                     const std::vector<double> e);
+                                     const std::vector<double> &e);
 
     
     

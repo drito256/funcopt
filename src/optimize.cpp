@@ -50,19 +50,25 @@ std::pair<double, double> optimize::golden_search(
     // case 3
     else if(func(point - e) < func(point) && func(point + e) > func(point)){
         double step = e;
-        while(func(point - step) < func(point)) {
+        while(func(point - step) < func(point - step / 2)) {
             step *= 2;
         }
-        interval = std::make_pair(point - step / 2, point);
+        interval = std::make_pair(point - step, point - step / 4);
     }
     // case 4
     else {
         double step = e;
-        while(func(point + step) < func(point)) {
+        while(func(point + step) < func(point + step / 2)) {
             step *= 2;
         }
-        interval = std::make_pair(point, point + step / 2);
+        interval = std::make_pair(point + step / 4, point + step);
     }
+    return golden_search(func, interval, e);
+}
 
-   return golden_search(func, interval, e); 
+
+std::vector<double> optimize::coord_search(const std::vector<double>& point,
+                                           const std::vector<double>& e){
+
+
 }

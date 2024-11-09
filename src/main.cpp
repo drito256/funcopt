@@ -13,11 +13,14 @@ void print_interval(std::pair<double, double> &interval){
 }
 
 int main(){
-    constexpr double starting_point = 2; 
+
+
+    constexpr double starting_point = 10; 
+    constexpr double epsilon = 10e-6;
     std::pair<double, double> interval = optimize::golden_search(
                                                    functions::parabolic,
-                                                   starting_point);
-
+                                                   starting_point,
+                                                   epsilon);
     print_interval(interval);
     return 0;
 }
