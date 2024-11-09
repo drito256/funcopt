@@ -13,6 +13,34 @@ namespace functions{
            + ((1 - x[0]) * ( 1 - x[0]));
     };
 
+    std::function<double(std::vector<double>)> f3 = [](std::vector<double> x){
+        double sum = 0;
+        for(int i=0;i<x.size();i++){
+            sum += (x[i] - i) * (x[i] - i);
+        }
+        return sum;
+    };
+
+    std::function<double(std::vector<double>)> f2 = [](std::vector<double> x){
+        return (x[0] - 4) * (x[0] - 4) + 4 * (x[1] - 2) * (x[1] - 2);
+    };
+    
+    std::function<double(std::vector<double>)> f4 = [](std::vector<double> x){
+        return fabs((x[0] - x[1]) * (x[0] + x[1])) + 
+               sqrtf(x[0] * x[0] + x[1] * x[1]); 
+    };
+    
+    std::function<double(std::vector<double>)> f6 = [](std::vector<double> x){
+        double sum = 0;
+        for(int i=0;i<x.size();i++){
+            sum += (x[i] * x[i]);
+        }
+
+        return 0.5 + ((sin(sqrt(sum)) * sin(sqrt(sum)))  - 0.5) / 
+              ((1 + 0.001 * sum) * (1 + 0.001 * sum));
+    };
+
+
 
 }
 
