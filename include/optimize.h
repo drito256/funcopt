@@ -34,7 +34,7 @@ namespace optimize{
 
 
 
-    // ========================   STATIC FUNCTIONS ===============================
+    // ========================   PRIVATE FUNCTIONS ===============================
     // helper functions for coord_search
     inline static bool compare_points(std::vector<double> p1,
                                std::vector<double> p2,
@@ -48,7 +48,8 @@ namespace optimize{
 
     // helper functions for nm_simplex
     inline static std::vector<double> calculate_centroid(
-                                std::vector<std::vector<double>> &simplex);
+                                std::vector<std::vector<double>> &simplex,
+                                int worst_index);
 
     inline static bool nm_exit_condition(std::function<double(std::vector<double>)> func,
                                   std::vector<std::vector<double>> &simplex,

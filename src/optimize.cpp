@@ -165,7 +165,7 @@ std::vector<std::vector<double>> optimize::nm_simplex(
         new_point[i] += offset;
         simplex.push_back(new_point);
     }
-    do{
+    /*do{
         std::pair<int, int> best_worst_index = get_best_worst_index_simplex(func,
                                                                             simplex);
         std::vector<double> centroid = calculate_centroid(simplex);
@@ -207,23 +207,60 @@ std::vector<std::vector<double>> optimize::nm_simplex(
                 }
             }
         }
-    }while(!nm_exit_condition(func, simplex, epsilon));
+    }while(!nm_exit_condition(func, simplex, epsilon));*/
+
+do {
+    // 1. Get best and worst indices
+    auto best_worst_index = get_best_worst_index_simplex(func, simplex);
+    
+    // 2. Calculate centroid
+    auto centroid = calculate_centroid(simplex, best_worst_index.second);
+    
+    // 3. Reflection
+    auto r_point = simplex_reflexion(centroid, simplex[best_worst_index.second], alpha);
+    
+    if (func(r_point) < func(simplex[best_worst_index.first])) {
+        // 4. Expansion
+        auto e_point = simplex_expansion(centroid, r_point, gamma);
+        if (func(e_point) < func(simplex[best_worst_index.first])) {
+            simplex[best_worst_index.second] = e_point;
+        } else {
+            simplex[best_worst_index.second] = r_point;
+        }
+    } else if (func(r_point) < func(simplex[best_worst_index.second])) {
+        simplex[best_worst_index.second] = r_point;
+    } else {
+        // 5. Contraction
+        auto c_point = simplex_contraction(centroid, simplex[best_worst_index.second], beta);
+        if (func(c_point) < func(simplex[best_worst_index.second])) {
+            simplex[best_worst_index.second] = c_point;
+        } else {
+            // 6. Reduction (Shrink) if contraction fails
+            simplex_shift(simplex, simplex[best_worst_index.first], sigma);
+        }
+    }
+} while (!nm_exit_condition(func, simplex, e));
+
     print_simplex(simplex);
     return simplex;
 }
 
 inline static std::vector<double> optimize::calculate_centroid(
-                                        std::vector<std::vector<double>> &simplex){
+                                        std::vector<std::vector<double>> &simplex,
+                                        int worst_index){
+
     std::vector<double> centroid(simplex[0].size());
 
     for(int i = 0; i < simplex.size(); i++){
+        if(i == worst_index)
+            continue;
         for(int j = 0; j < simplex[i].size(); j++){
             centroid[j] += simplex[i][j];
         }
     }
 
     for(int i = 0; i < centroid.size(); i++){
-        centroid[i] /= simplex.size();
+        centroid[i] /= (simplex.size() - 1);
     }
     return centroid;
 }
@@ -232,8 +269,9 @@ inline static bool optimize::nm_exit_condition(
                               std::function<double(std::vector<double>)> func,
                               std::vector<std::vector<double>> &simplex,
                               const double epsilon){
-
-    std::vector<double> centroid = calculate_centroid(simplex);
+    
+    int worst_index = get_best_worst_index_simplex(func, simplex).second;
+    std::vector<double> centroid = calculate_centroid(simplex, worst_index);
     double sum = 0;
     for(int i = 0; i < simplex.size(); i++){
         sum += ((func(simplex[i]) - func(centroid)) * 
@@ -322,7 +360,6 @@ inline static void optimize::print_simplex(std::vector<std::vector<double>> &sim
         std::cout <<" ]\n";
     }
 }
-
 
 inline static void optimize::print_centroid(std::vector<double> &centroid){
     std::cout << "Centroid : [ ";
