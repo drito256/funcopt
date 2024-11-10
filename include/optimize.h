@@ -9,7 +9,7 @@
 namespace optimize{
     constexpr double epsilon = 10e-6;
 
-    // TODO: function optimization methods 
+    // function optimization methods 
     std::pair<double, double> golden_search(std::function<double(double)> func,
                                             const double point,
                                             const double e = epsilon);    
@@ -21,7 +21,8 @@ namespace optimize{
                                      const std::vector<double> &starting_point, 
                                      const std::vector<double> &e);
     
-    std::vector<std::vector<double>> nm_simplex(std::function<double(std::vector<double>)> func,
+    std::vector<std::vector<double>> nm_simplex(
+                                   std::function<double(std::vector<double>)> func,
                                    const std::vector<double> &starting_point,
                                    const double alpha = 1,
                                    const double beta = 0.5,
@@ -29,7 +30,10 @@ namespace optimize{
                                    const double sigma = 0.5,
                                    const double e = 10e-6);
 
-
+    std::vector<double> hooke_jeeves(
+                                     std::function<double(std::vector<double>)> func,
+                                     const std::vector<double> &starting_point,
+                                     std::vector<double> &e);
 
 
 
@@ -78,7 +82,13 @@ namespace optimize{
     inline static void print_centroid(std::vector<double> &centroid);
     inline static void print_simplex(std::vector<std::vector<double>> &simplex);
 
+    inline static std::vector<double> discover(
+                                     std::function<double(std::vector<double>)> func,
+                                     const std::vector<double> &xp,
+                                     const std::vector<double> &delta);
 
+    inline static bool hj_exit_condition(const std::vector<double> &delta,
+                                         const std::vector<double> &e);
 }
 
 #endif

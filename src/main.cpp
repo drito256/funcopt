@@ -96,9 +96,13 @@ int main(){
                                                         starting_point3,
                                                         epsilon3);
     print_point(point2);
-    std::vector<std::vector<double>> centroid = optimize::nm_simplex(
+    std::vector<std::vector<double>> simplex = optimize::nm_simplex(
                                             functions::rosenbrock,
                                             starting_point3);
+    
+    std::vector<double> point3 = optimize::hooke_jeeves(functions::rosenbrock, starting_point3, epsilon3);
+    std::cout << "Hooke-Jeeves >>> ";
+    print_point(point3);
                                                         
     return 0;
 }

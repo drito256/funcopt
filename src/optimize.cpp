@@ -328,3 +328,68 @@ inline static void optimize::print_centroid(std::vector<double> &centroid){
     std::cout << "]\n";
 }
 
+
+std::vector<double> optimize::hooke_jeeves(
+                                    std::function<double(std::vector<double>)> func,
+                                    const std::vector<double> &starting_point,
+                                    std::vector<double> &e){
+    std::vector<double> xb;
+    std::vector<double> xp;
+    xb = xp = starting_point;
+    std::vector<double> xn;
+
+    std::vector<double> delta(starting_point.size());
+    for(int i = 0;i<delta.size();i++){
+        delta[i] = 0.5;
+    }
+
+    do{
+        xn = discover(func, xp, delta); 
+        if(func(xn) < func(xb)){
+            for(int i = 0; i < xp.size(); i++){
+                xp[i] = 2 * xn[i] - xb[i];
+            }
+            xb = xn;
+        }
+        else{
+            for(int i = 0; i < delta.size(); i++){
+                delta[i] = delta[i] / 2;
+            }
+            xp = xb;
+        }
+    }while(!hj_exit_condition(delta, e));
+
+    return xb;
+}
+
+static inline std::vector<double> optimize::discover(
+                                    std::function<double(std::vector<double>)> func,
+                                    const std::vector<double> &xp, 
+                                    const std::vector<double> &delta){
+
+    std::vector<double> x = xp;
+    for(int i = 0; i < x.size(); i++){
+        double p = func(x);
+        x[i] = x[i] + delta[i];
+        double n  = func(x);
+
+        if(n > p){
+            x[i] = x[i] - 2 * delta[i];
+            n = func(x);
+            if(n > p){
+                x[i] = x[i] + delta[i];
+            }
+        }
+    }
+    return x;
+}
+
+static inline bool optimize::hj_exit_condition(const std::vector<double> &delta,
+                                               const std::vector<double> &e){
+    for(int i = 0; i < e.size(); i++){
+        if(delta[i] >= e[i]){
+            return false;
+        }
+    }
+    return true;
+}
