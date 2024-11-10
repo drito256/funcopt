@@ -126,17 +126,17 @@ static std::vector<double> optimize::axis_min(
                                double epsilon){
 
     int direction = 1;
-    std::vector<double> test_point = point;
-    test_point[axis_index] += direction * epsilon;
+    std::vector<double> new_point = point;
+    new_point[axis_index] += direction * epsilon;
 
-    if(func(test_point) > func(point)){
+    if(func(new_point) > func(point)){
         direction *= -1;
-        test_point = point;
-        test_point[axis_index] += direction * epsilon;
+        new_point = point;
+        new_point[axis_index] += direction * epsilon;
     }
 
     std::vector<double> previous_point = point;
-    std::vector<double> new_point = previous_point;
+    new_point = previous_point;
     new_point[axis_index] += direction * epsilon;
     
     while(func(new_point) < func(previous_point)){
@@ -146,4 +146,63 @@ static std::vector<double> optimize::axis_min(
     
     return previous_point;
 }
+
+std::vector<std::vector<double>> optimize::nm_simplex(
+                              std::function<double(std::vector<double>)> func,
+                              const std::vector<double> &starting_point,
+                              const double alpha,
+                              const double beta,
+                              const double gamma,
+                              const double e){
+
+    // generate starting simplex
+    const double offset = 1;
+    std::vector<std::vector<double>> simplex;
+    simplex.push_back(starting_point);
+    for(int i = 0; i < starting_point.size();i++){
+        std::vector<double> new_point = starting_point;
+        new_point[i] += offset;
+        simplex.push_back(new_point);
+    }
+    
+
+
+    return simplex;
+}
+
+static void print_simplex(std::vector<std::vector<double>> simplex){
+    std::cout << "Simplex points: ";
+    for(int i = 0; i < simplex.size(); i++){
+        std::cout << "\nPoint " << i << ": [ ";
+        for(int j = 0; j < simplex[i].size(); j++){
+            std::cout << simplex[i][j] << " , ";
+        }
+        std::cout <<" ]";
+    }
+}
+
+static std::vector<double> calculate_centroid(
+                                        std::vector<std::vector<double>> simplex){
+    std::vector<double> centroid(simplex[0].size());
+
+    for(int i = 0; i < simplex.size(); i++){
+        for(int j = 0; j < simplex[i].size(); j++){
+            centroid[j] += simplex[i][j];
+        }
+    }
+
+    for(int i = 0; i < centroid.size(); i++){
+        centroid[i] /= simplex.size();
+    }
+    return centroid;
+}
+
+static void print_centroid(std::vector<double> centroid){
+    std::cout << "Centroid : [ ";
+    for(int i = 0; i < centroid.size(); i++){
+        std::cout << centroid[i] << " , ";
+    }
+    std::cout << "]\n";
+}
+
 
