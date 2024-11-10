@@ -167,8 +167,13 @@ std::vector<std::vector<double>> optimize::nm_simplex(
     }
     
     do{
-        
+        std::pair<int, int> best_worst_index = get_best_worst_index_simplex(func,
+                                                                            simplex);
         std::vector<double> centroid = calculate_centroid(simplex);
+        std::vector<double> r_point = simplex_reflexion(
+                                                    centroid,
+                                                    simplex[best_worst_index.second],
+                                                    alpha);
 
 
 
@@ -209,7 +214,7 @@ static bool optimize::nm_exit_condition(std::function<double(std::vector<double>
     return root_avg <= epsilon;
 }
 
-static std::pair<int, int> best_worst_index_simplex(
+static std::pair<int, int> optimize::get_best_worst_index_simplex(
                                     std::function<double(std::vector<double>)> func,
                                     std::vector<std::vector<double>> &simplex){
     int best = 0, worst = 0;
@@ -225,6 +230,42 @@ static std::pair<int, int> best_worst_index_simplex(
     }
 
     return std::make_pair(best, worst);
+}
+
+static std::vector<double> optimize::simplex_reflexion(
+                                        std::vector<double> &centroid,
+                                        std::vector<double> &worst_point,
+                                        const double alpha){
+    std::vector<double> r_point;
+    for(int i = 0; i < centroid.size(); i++){
+        r_point[i] = (1 + alpha) * centroid[i] - alpha * worst_point[i]; 
+    }
+
+    return r_point;
+}
+
+static std::vector<double> optimize::simplex_expansion(
+                                                std::vector<double> &centroid,
+                                                std::vector<double> &reflex_point,
+                                                const double gamma){
+    std::vector<double> expan_point;
+    for(int i = 0; i < centroid.size(); i++){
+        expan_point[i] = (1 - gamma) * centroid[i] + gamma * reflex_point[i]; 
+    }
+
+    return expan_point;
+}
+
+static std::vector<double> optimize::simplex_contraction(
+                                                std::vector<double> &centroid,
+                                                std::vector<double> &worst_point,
+                                                const double beta){
+    std::vector<double> contr_point;
+    for(int i = 0; i < centroid.size(); i++){
+        contr_point[i] = (1 - beta) * centroid[i] + beta * worst_point[i]; 
+    }
+
+    return contr_point;
 }
 
 static void optimize::print_simplex(std::vector<std::vector<double>> &simplex){
