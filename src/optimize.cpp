@@ -165,81 +165,38 @@ std::vector<std::vector<double>> optimize::nm_simplex(
         new_point[i] += offset;
         simplex.push_back(new_point);
     }
-    /*do{
-        std::pair<int, int> best_worst_index = get_best_worst_index_simplex(func,
-                                                                            simplex);
-        std::vector<double> centroid = calculate_centroid(simplex);
-        std::vector<double> r_point = simplex_reflexion(
-                                                    centroid,
-                                                    simplex[best_worst_index.second],
-                                                    alpha);
-        if(func(r_point) < func(simplex[best_worst_index.first])){
-           std::vector<double> e_point = simplex_expansion(centroid,
-                                                           r_point,
-                                                           gamma);
-            if(func(e_point) < func(simplex[best_worst_index.first])){
+
+    do {
+        auto best_worst_index = get_best_worst_index_simplex(func, simplex);
+        auto centroid = calculate_centroid(simplex, best_worst_index.second);
+        auto r_point = simplex_reflexion(centroid, 
+                                         simplex[best_worst_index.second], alpha);
+        
+        if (func(r_point) < func(simplex[best_worst_index.first])) {
+            auto e_point = simplex_expansion(centroid, r_point, gamma);
+
+            if (func(e_point) < func(simplex[best_worst_index.first])) {
                 simplex[best_worst_index.second] = e_point;
-            }
-            else{
+            } 
+            else {
                 simplex[best_worst_index.second] = r_point;
             }
-        }
-        else{
-            for(int j = 0; j < simplex.size(); j++){
-                if( func(r_point) > func(simplex[j]) && j != best_worst_index.second){
-                    if(func(r_point) < func(simplex[best_worst_index.second])){
-                        simplex[best_worst_index.second] = r_point;
-                    }
-                    std::vector<double> c_point = simplex_contraction(
-                                                    centroid,
-                                                    simplex[best_worst_index.second],
-                                                    beta);
-                    if(func(c_point) < func(simplex[best_worst_index.second])){
-                        simplex[best_worst_index.second] = c_point;
-                    }
-                    else{
-                        simplex_shift(simplex, simplex[best_worst_index.first], sigma);
-                    }
-                                                                      
-                }
-                else{
-                    simplex[best_worst_index.second] = r_point;
-                }
+        } 
+        else if (func(r_point) < func(simplex[best_worst_index.second])) {
+            simplex[best_worst_index.second] = r_point;
+        } 
+        else {
+            auto c_point = simplex_contraction(centroid, 
+                                               simplex[best_worst_index.second], beta);
+
+            if (func(c_point) < func(simplex[best_worst_index.second])) {
+                simplex[best_worst_index.second] = c_point;
+            }
+            else {
+                simplex_shift(simplex, simplex[best_worst_index.first], sigma);
             }
         }
-    }while(!nm_exit_condition(func, simplex, epsilon));*/
-
-do {
-    // 1. Get best and worst indices
-    auto best_worst_index = get_best_worst_index_simplex(func, simplex);
-    
-    // 2. Calculate centroid
-    auto centroid = calculate_centroid(simplex, best_worst_index.second);
-    
-    // 3. Reflection
-    auto r_point = simplex_reflexion(centroid, simplex[best_worst_index.second], alpha);
-    
-    if (func(r_point) < func(simplex[best_worst_index.first])) {
-        // 4. Expansion
-        auto e_point = simplex_expansion(centroid, r_point, gamma);
-        if (func(e_point) < func(simplex[best_worst_index.first])) {
-            simplex[best_worst_index.second] = e_point;
-        } else {
-            simplex[best_worst_index.second] = r_point;
-        }
-    } else if (func(r_point) < func(simplex[best_worst_index.second])) {
-        simplex[best_worst_index.second] = r_point;
-    } else {
-        // 5. Contraction
-        auto c_point = simplex_contraction(centroid, simplex[best_worst_index.second], beta);
-        if (func(c_point) < func(simplex[best_worst_index.second])) {
-            simplex[best_worst_index.second] = c_point;
-        } else {
-            // 6. Reduction (Shrink) if contraction fails
-            simplex_shift(simplex, simplex[best_worst_index.first], sigma);
-        }
-    }
-} while (!nm_exit_condition(func, simplex, e));
+    } while (!nm_exit_condition(func, simplex, e));
 
     print_simplex(simplex);
     return simplex;
