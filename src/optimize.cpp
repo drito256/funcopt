@@ -175,8 +175,40 @@ std::vector<std::vector<double>> optimize::nm_simplex(
                                                     simplex[best_worst_index.second],
                                                     alpha);
 
-
-
+        if(func(r_point) < func(simplex[best_worst_index.first])){
+           std::vector<double> e_point = simplex_expansion(centroid,
+                                                           r_point,
+                                                           gamma);
+            if(func(e_point) < func(simplex[best_worst_index.first])){
+                simplex[best_worst_index.second] = e_point;
+            }
+            else{
+                simplex[best_worst_index.second] = r_point;
+            }
+        }
+        else{
+            for(int j = 0; j < simplex.size(); j++){
+                if( func(r_point) > func(simplex[j]) && j != best_worst_index.second){
+                    if(func(r_point) < func(simplex[best_worst_index.second])){
+                        simplex[best_worst_index.second] = r_point;
+                    }
+                    std::vector<double> c_point = simplex_contraction(
+                                                    centroid,
+                                                    simplex[best_worst_index.second],
+                                                    beta);
+                    if(func(c_point) < func(simplex[best_worst_index.second])){
+                        simplex[best_worst_index.second] = c_point;
+                    }
+                    else{
+                        simplex_shift(simplex, simplex[best_worst_index.first], sigma);
+                    }
+                                                                      
+                }
+                else{
+                    simplex[best_worst_index.second] = r_point;
+                }
+            }
+        }
     }while(!nm_exit_condition(func, simplex, epsilon));
 
     return simplex;
@@ -266,6 +298,17 @@ static std::vector<double> optimize::simplex_contraction(
     }
 
     return contr_point;
+}
+
+static void optimize::simplex_shift(std::vector<std::vector<double>> &simplex,
+                                    std::vector<double> &best_point,
+                                    const double sigma){
+
+    for(int i = 0; i < simplex.size(); i++){
+        for(int j = 0; j < simplex[i].size(); j++){
+            simplex[i][j] = 0.5 * (simplex[i][j] + best_point[j]);
+        }
+    }
 }
 
 static void optimize::print_simplex(std::vector<std::vector<double>> &simplex){

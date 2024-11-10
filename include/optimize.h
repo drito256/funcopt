@@ -69,6 +69,9 @@ namespace optimize{
                                     std::vector<double> &centroid, 
                                     std::vector<double> &worst_point, 
                                     const double beta);
+    static void simplex_shift(std::vector<std::vector<double>> &simplex, 
+                              std::vector<double> &best_point, 
+                              const double sigma);
  
 
     static void print_centroid(std::vector<double> &centroid);
