@@ -1,5 +1,7 @@
 #include "../include/optimize.h"
 
+
+int eval_counter = 0;
 std::pair<double, double> optimize::golden_search(
                                     std::function<double(double)> func,
                                     std::pair<double, double> &interval,
@@ -12,6 +14,8 @@ std::pair<double, double> optimize::golden_search(
     double fc = func(c);
     double fd = func(d);
 
+    eval_counter = 2;
+
     while((interval.second - interval.first) > e){
         if(fc < fd){
             interval.second = d;
@@ -19,6 +23,7 @@ std::pair<double, double> optimize::golden_search(
             c = interval.second - k * (interval.second - interval.first);
             fd = fc;
             fc = func(c);
+            eval_counter++;
         }
         else{
             interval.first = c;
@@ -26,9 +31,10 @@ std::pair<double, double> optimize::golden_search(
             d = interval.first + k * (interval.second - interval.first);
             fc = fd;
             fd = func(d);
+            eval_counter++;
         }
     }
-
+    std::cout << "Number of evaluations: " << eval_counter << std::endl;
     return interval;
 }
 
@@ -74,7 +80,7 @@ std::vector<double> optimize::coord_search(std::function<double(std::vector<doub
     if(point.size() != e.size()){
        throw "Point dimension does not match epsilon dimension";
     }
-
+    eval_counter = 0;
     std::vector<double> minimum = point;
     std::vector<double> prev_min;
     do{
@@ -85,6 +91,7 @@ std::vector<double> optimize::coord_search(std::function<double(std::vector<doub
     }while(!compare_points(prev_min, minimum, e));
 
 
+    std::cout << "Number of evaluations: " << eval_counter << std::endl;
     return minimum;
 }
 
@@ -128,7 +135,8 @@ inline static std::vector<double> optimize::axis_min(
     int direction = 1;
     std::vector<double> new_point = point;
     new_point[axis_index] += direction * epsilon;
-
+    
+    eval_counter +=2;
     if(func(new_point) > func(point)){
         direction *= -1;
         new_point = point;
@@ -142,6 +150,7 @@ inline static std::vector<double> optimize::axis_min(
     while(func(new_point) < func(previous_point)){
         previous_point = new_point;
         new_point[axis_index] += direction * epsilon;
+        eval_counter +=2;
     }
     
     return previous_point;
@@ -165,16 +174,18 @@ std::vector<std::vector<double>> optimize::nm_simplex(
         new_point[i] += offset;
         simplex.push_back(new_point);
     }
-
+    eval_counter = 0;
     do {
         auto best_worst_index = get_best_worst_index_simplex(func, simplex);
         auto centroid = calculate_centroid(simplex, best_worst_index.second);
         auto r_point = simplex_reflexion(centroid, 
                                          simplex[best_worst_index.second], alpha);
-        
+       
+        eval_counter += 3; //average 2 and 4
         if (func(r_point) < func(simplex[best_worst_index.first])) {
             auto e_point = simplex_expansion(centroid, r_point, gamma);
 
+            eval_counter +=2;
             if (func(e_point) < func(simplex[best_worst_index.first])) {
                 simplex[best_worst_index.second] = e_point;
             } 
@@ -188,7 +199,8 @@ std::vector<std::vector<double>> optimize::nm_simplex(
         else {
             auto c_point = simplex_contraction(centroid, 
                                                simplex[best_worst_index.second], beta);
-
+            
+            eval_counter += 2;
             if (func(c_point) < func(simplex[best_worst_index.second])) {
                 simplex[best_worst_index.second] = c_point;
             }
@@ -198,7 +210,7 @@ std::vector<std::vector<double>> optimize::nm_simplex(
         }
     } while (!nm_exit_condition(func, simplex, e));
 
-    print_simplex(simplex);
+    std::cout << "Number of evaluations: " << eval_counter << std::endl;
     return simplex;
 }
 
@@ -246,6 +258,7 @@ inline static std::pair<int, int> optimize::get_best_worst_index_simplex(
     int best = 0, worst = 0;
 
     for(int i = 0; i < simplex.size(); i++){
+        eval_counter += 3;
         double value = func(simplex[i]);
         if(value > func(simplex[worst])){
             worst = i;
@@ -342,9 +355,10 @@ std::vector<double> optimize::hooke_jeeves(
     for(int i = 0;i<delta.size();i++){
         delta[i] = 0.5;
     }
-
+    eval_counter = 0;
     do{
         xn = discover(func, xp, delta); 
+        eval_counter += 2;
         if(func(xn) < func(xb)){
             for(int i = 0; i < xp.size(); i++){
                 xp[i] = 2 * xn[i] - xb[i];
@@ -359,6 +373,7 @@ std::vector<double> optimize::hooke_jeeves(
         }
     }while(!hj_exit_condition(delta, e));
 
+    std::cout << "Number of evaluations: " << eval_counter << std::endl;
     return xb;
 }
 
@@ -369,12 +384,14 @@ static inline std::vector<double> optimize::discover(
 
     std::vector<double> x = xp;
     for(int i = 0; i < x.size(); i++){
+        eval_counter +=2;
         double p = func(x);
         x[i] = x[i] + delta[i];
         double n  = func(x);
 
         if(n > p){
             x[i] = x[i] - 2 * delta[i];
+            eval_counter++;
             n = func(x);
             if(n > p){
                 x[i] = x[i] + delta[i];
