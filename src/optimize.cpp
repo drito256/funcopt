@@ -153,6 +153,7 @@ std::vector<std::vector<double>> optimize::nm_simplex(
                               const double alpha,
                               const double beta,
                               const double gamma,
+                              const double sigma,
                               const double e){
 
     // generate starting simplex
@@ -165,24 +166,19 @@ std::vector<std::vector<double>> optimize::nm_simplex(
         simplex.push_back(new_point);
     }
     
+    do{
+        
+        std::vector<double> centroid = calculate_centroid(simplex);
 
+
+
+    }while(!nm_exit_condition(func, simplex, epsilon));
 
     return simplex;
 }
 
-static void print_simplex(std::vector<std::vector<double>> simplex){
-    std::cout << "Simplex points: ";
-    for(int i = 0; i < simplex.size(); i++){
-        std::cout << "\nPoint " << i << ": [ ";
-        for(int j = 0; j < simplex[i].size(); j++){
-            std::cout << simplex[i][j] << " , ";
-        }
-        std::cout <<" ]";
-    }
-}
-
-static std::vector<double> calculate_centroid(
-                                        std::vector<std::vector<double>> simplex){
+static std::vector<double> optimize::calculate_centroid(
+                                        std::vector<std::vector<double>> &simplex){
     std::vector<double> centroid(simplex[0].size());
 
     for(int i = 0; i < simplex.size(); i++){
@@ -197,12 +193,59 @@ static std::vector<double> calculate_centroid(
     return centroid;
 }
 
-static void print_centroid(std::vector<double> centroid){
+static bool optimize::nm_exit_condition(std::function<double(std::vector<double>)> func,
+                              std::vector<std::vector<double>> &simplex,
+                              const double epsilon){
+
+    std::vector<double> centroid = calculate_centroid(simplex);
+    double sum = 0;
+    for(int i = 0; i < simplex.size(); i++){
+        sum += ((func(simplex[i]) - func(centroid)) * 
+               (func(simplex[i]) - func(centroid)));
+    }
+
+    double root_avg = sqrtf(sum / simplex.size());
+    
+    return root_avg <= epsilon;
+}
+
+static std::pair<int, int> best_worst_index_simplex(
+                                    std::function<double(std::vector<double>)> func,
+                                    std::vector<std::vector<double>> &simplex){
+    int best = 0, worst = 0;
+
+    for(int i = 0; i < simplex.size(); i++){
+        double value = func(simplex[i]);
+        if(value > func(simplex[worst])){
+            worst = i;
+        }
+        if(value < func(simplex[best])){
+            best = i;
+        }
+    }
+
+    return std::make_pair(best, worst);
+}
+
+static void optimize::print_simplex(std::vector<std::vector<double>> &simplex){
+    std::cout << "Simplex points: ";
+    for(int i = 0; i < simplex.size(); i++){
+        std::cout << "\nPoint " << i << ": [ ";
+        for(int j = 0; j < simplex[i].size(); j++){
+            std::cout << simplex[i][j] << " , ";
+        }
+        std::cout <<" ]";
+    }
+}
+
+
+static void optimize::print_centroid(std::vector<double> &centroid){
     std::cout << "Centroid : [ ";
     for(int i = 0; i < centroid.size(); i++){
         std::cout << centroid[i] << " , ";
     }
     std::cout << "]\n";
 }
+
 
 

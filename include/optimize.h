@@ -23,10 +23,11 @@ namespace optimize{
     
     std::vector<std::vector<double>> nm_simplex(std::function<double(std::vector<double>)> func,
                                    const std::vector<double> &starting_point,
-                                   const double alpha,
-                                   const double beta,
-                                   const double gamma,
-                                   const double e);
+                                   const double alpha = 1,
+                                   const double beta = 0.5,
+                                   const double gamma = 2,
+                                   const double sigma = 0.5,
+                                   const double e = 10e-6);
 
 
 
@@ -47,8 +48,14 @@ namespace optimize{
 
     // helper functions for nm_simplex
     static std::vector<double> calculate_centroid(
-                                std::vector<std::vector<double>> simplex);
-    static void print_centroid(std::vector<double> centroid);
+                                std::vector<std::vector<double>> &simplex);
+
+    static bool nm_exit_condition(std::function<double(std::vector<double>)> func,
+                                  std::vector<std::vector<double>> &simplex,
+                                  const double epsilon);
+
+    static void print_centroid(std::vector<double> &centroid);
+    static void print_simplex(std::vector<std::vector<double>> &simplex);
 
 
 }
