@@ -88,7 +88,7 @@ std::vector<double> optimize::coord_search(std::function<double(std::vector<doub
     return minimum;
 }
 
-static bool optimize::compare_points(std::vector<double> p1,
+inline static bool optimize::compare_points(std::vector<double> p1,
                            std::vector<double> p2,
                            std::vector<double> e){
     
@@ -119,7 +119,7 @@ static bool optimize::compare_points(std::vector<double> p1,
     return true;
 }
 
-static std::vector<double> optimize::axis_min(
+inline static std::vector<double> optimize::axis_min(
                                std::function<double(std::vector<double>)> func,
                                std::vector<double> &point,
                                int axis_index,
@@ -165,7 +165,6 @@ std::vector<std::vector<double>> optimize::nm_simplex(
         new_point[i] += offset;
         simplex.push_back(new_point);
     }
-    
     do{
         std::pair<int, int> best_worst_index = get_best_worst_index_simplex(func,
                                                                             simplex);
@@ -174,7 +173,6 @@ std::vector<std::vector<double>> optimize::nm_simplex(
                                                     centroid,
                                                     simplex[best_worst_index.second],
                                                     alpha);
-
         if(func(r_point) < func(simplex[best_worst_index.first])){
            std::vector<double> e_point = simplex_expansion(centroid,
                                                            r_point,
@@ -210,11 +208,11 @@ std::vector<std::vector<double>> optimize::nm_simplex(
             }
         }
     }while(!nm_exit_condition(func, simplex, epsilon));
-
+    print_simplex(simplex);
     return simplex;
 }
 
-static std::vector<double> optimize::calculate_centroid(
+inline static std::vector<double> optimize::calculate_centroid(
                                         std::vector<std::vector<double>> &simplex){
     std::vector<double> centroid(simplex[0].size());
 
@@ -230,7 +228,8 @@ static std::vector<double> optimize::calculate_centroid(
     return centroid;
 }
 
-static bool optimize::nm_exit_condition(std::function<double(std::vector<double>)> func,
+inline static bool optimize::nm_exit_condition(
+                              std::function<double(std::vector<double>)> func,
                               std::vector<std::vector<double>> &simplex,
                               const double epsilon){
 
@@ -246,7 +245,7 @@ static bool optimize::nm_exit_condition(std::function<double(std::vector<double>
     return root_avg <= epsilon;
 }
 
-static std::pair<int, int> optimize::get_best_worst_index_simplex(
+inline static std::pair<int, int> optimize::get_best_worst_index_simplex(
                                     std::function<double(std::vector<double>)> func,
                                     std::vector<std::vector<double>> &simplex){
     int best = 0, worst = 0;
@@ -264,11 +263,11 @@ static std::pair<int, int> optimize::get_best_worst_index_simplex(
     return std::make_pair(best, worst);
 }
 
-static std::vector<double> optimize::simplex_reflexion(
+inline static std::vector<double> optimize::simplex_reflexion(
                                         std::vector<double> &centroid,
                                         std::vector<double> &worst_point,
                                         const double alpha){
-    std::vector<double> r_point;
+    std::vector<double> r_point(centroid.size());
     for(int i = 0; i < centroid.size(); i++){
         r_point[i] = (1 + alpha) * centroid[i] - alpha * worst_point[i]; 
     }
@@ -276,11 +275,11 @@ static std::vector<double> optimize::simplex_reflexion(
     return r_point;
 }
 
-static std::vector<double> optimize::simplex_expansion(
+inline static std::vector<double> optimize::simplex_expansion(
                                                 std::vector<double> &centroid,
                                                 std::vector<double> &reflex_point,
                                                 const double gamma){
-    std::vector<double> expan_point;
+    std::vector<double> expan_point(centroid.size());
     for(int i = 0; i < centroid.size(); i++){
         expan_point[i] = (1 - gamma) * centroid[i] + gamma * reflex_point[i]; 
     }
@@ -288,11 +287,11 @@ static std::vector<double> optimize::simplex_expansion(
     return expan_point;
 }
 
-static std::vector<double> optimize::simplex_contraction(
+inline static std::vector<double> optimize::simplex_contraction(
                                                 std::vector<double> &centroid,
                                                 std::vector<double> &worst_point,
                                                 const double beta){
-    std::vector<double> contr_point;
+    std::vector<double> contr_point(centroid.size());
     for(int i = 0; i < centroid.size(); i++){
         contr_point[i] = (1 - beta) * centroid[i] + beta * worst_point[i]; 
     }
@@ -300,7 +299,7 @@ static std::vector<double> optimize::simplex_contraction(
     return contr_point;
 }
 
-static void optimize::simplex_shift(std::vector<std::vector<double>> &simplex,
+inline static void optimize::simplex_shift(std::vector<std::vector<double>> &simplex,
                                     std::vector<double> &best_point,
                                     const double sigma){
 
@@ -311,25 +310,27 @@ static void optimize::simplex_shift(std::vector<std::vector<double>> &simplex,
     }
 }
 
-static void optimize::print_simplex(std::vector<std::vector<double>> &simplex){
-    std::cout << "Simplex points: ";
+inline static void optimize::print_simplex(std::vector<std::vector<double>> &simplex){
+    std::cout << "Simplex points:\n";
     for(int i = 0; i < simplex.size(); i++){
-        std::cout << "\nPoint " << i << ": [ ";
+        std::cout << "Point " << i << ": [ ";
         for(int j = 0; j < simplex[i].size(); j++){
-            std::cout << simplex[i][j] << " , ";
+            std::cout << simplex[i][j];
+            if(j != simplex[i].size() - 1)
+                std::cout << " , ";
         }
-        std::cout <<" ]";
+        std::cout <<" ]\n";
     }
 }
 
 
-static void optimize::print_centroid(std::vector<double> &centroid){
+inline static void optimize::print_centroid(std::vector<double> &centroid){
     std::cout << "Centroid : [ ";
     for(int i = 0; i < centroid.size(); i++){
-        std::cout << centroid[i] << " , ";
+        std::cout << centroid[i];
+        if(i != centroid.size() - 1)
+            std::cout << centroid[i] << " , ";
     }
     std::cout << "]\n";
 }
-
-
 

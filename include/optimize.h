@@ -36,10 +36,10 @@ namespace optimize{
 
     // ========================   STATIC FUNCTIONS ===============================
     // helper functions for coord_search
-    static bool compare_points(std::vector<double> p1,
+    inline static bool compare_points(std::vector<double> p1,
                                std::vector<double> p2,
                                std::vector<double> e);
-    static std::vector<double> axis_min(
+    inline static std::vector<double> axis_min(
                                     std::function<double(std::vector<double>)> func,
                                     std::vector<double> &point,
                                     int axis_index,
@@ -47,35 +47,35 @@ namespace optimize{
 
 
     // helper functions for nm_simplex
-    static std::vector<double> calculate_centroid(
+    inline static std::vector<double> calculate_centroid(
                                 std::vector<std::vector<double>> &simplex);
 
-    static bool nm_exit_condition(std::function<double(std::vector<double>)> func,
+    inline static bool nm_exit_condition(std::function<double(std::vector<double>)> func,
                                   std::vector<std::vector<double>> &simplex,
                                   const double epsilon);
-    static std::pair<int, int> get_best_worst_index_simplex(
+    inline static std::pair<int, int> get_best_worst_index_simplex(
                                     std::function<double(std::vector<double>)> func,
                                     std::vector<std::vector<double>> &simplex);
 
-    static std::vector<double> simplex_reflexion(
+    inline static std::vector<double> simplex_reflexion(
                                     std::vector<double> &centroid, 
                                     std::vector<double> &worst_point, 
                                     const double alpha);
-    static std::vector<double> simplex_expansion(
+    inline static std::vector<double> simplex_expansion(
                                     std::vector<double> &centroid, 
                                     std::vector<double> &reflex_point, 
                                     const double gamma);
-    static std::vector<double> simplex_contraction(
+    inline static std::vector<double> simplex_contraction(
                                     std::vector<double> &centroid, 
                                     std::vector<double> &worst_point, 
                                     const double beta);
-    static void simplex_shift(std::vector<std::vector<double>> &simplex, 
+    inline static void simplex_shift(std::vector<std::vector<double>> &simplex, 
                               std::vector<double> &best_point, 
                               const double sigma);
  
 
-    static void print_centroid(std::vector<double> &centroid);
-    static void print_simplex(std::vector<std::vector<double>> &simplex);
+    inline static void print_centroid(std::vector<double> &centroid);
+    inline static void print_simplex(std::vector<std::vector<double>> &simplex);
 
 
 }
