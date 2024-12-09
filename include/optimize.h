@@ -6,13 +6,15 @@
 #include <vector>
 #include <functional>
 
+#include "matrix.h"
+
 namespace optimize{
     constexpr double epsilon = 10e-6;
 
     // -------------------------------------------------------------------
-    // ---------------- METHODS THAT DONT REQUIRE DERIVATIVES ------------
+    // -------------- METHODS THAT DONT REQUIRE DERIVATIVES --------------
     // -------------------------------------------------------------------
-    std::pair<double, double> golden_search(std::function<double(double)> func,
+    std::pair<double, double> golden_search (std::function<double(double)> func,
                                             const double point,
                                             const double e = epsilon);    
     std::pair<double, double> golden_search(std::function<double(double)> func,
@@ -39,11 +41,21 @@ namespace optimize{
 
     
     // -------------------------------------------------------------------
-    // ------------------ METHODS THAT REQUIRE DERIVATIVES ---------------
+    // ---------------- METHODS THAT REQUIRE DERIVATIVES -----------------
     // -------------------------------------------------------------------
-    std::vector<double> gradient_desc(); 
-    std::vector<double> newton_raphson();
-    std::vector<double> gauss_newton();
+    std::vector<double> gradient_desc(std::function<double(std::vector<double>)> func,
+                                      const std::vector<double> &starting_point,
+                                      const double e = epsilon,
+                                      const bool golden_ratio_used = true); 
+    std::vector<double> newton_raphson(std::function<double(std::vector<double>)> func,
+                                      const std::vector<double> &starting_point,
+                                      const double e = epsilon,
+                                      const bool golden_ratio_used = true); 
+;
+    std::vector<double> gauss_newton(std::function<double(std::vector<double>)> func,
+                                      const std::vector<double> &starting_point,
+                                      const double e = epsilon,
+                                      const bool golden_ratio_used = true);
 
 
 
