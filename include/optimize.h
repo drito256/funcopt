@@ -9,7 +9,9 @@
 namespace optimize{
     constexpr double epsilon = 10e-6;
 
-    // function optimization methods 
+    // -------------------------------------------------------------------
+    // ---------------- METHODS THAT DONT REQUIRE DERIVATIVES ------------
+    // -------------------------------------------------------------------
     std::pair<double, double> golden_search(std::function<double(double)> func,
                                             const double point,
                                             const double e = epsilon);    
@@ -28,12 +30,22 @@ namespace optimize{
                                    const double beta = 0.5,
                                    const double gamma = 2,
                                    const double sigma = 0.5,
-                                   const double e = 10e-6);
+                                   const double e = epsilon);
 
     std::vector<double> hooke_jeeves(
                                      std::function<double(std::vector<double>)> func,
                                      const std::vector<double> &starting_point,
                                      std::vector<double> &e);
+
+    
+    // -------------------------------------------------------------------
+    // ------------------ METHODS THAT REQUIRE DERIVATIVES ---------------
+    // -------------------------------------------------------------------
+    std::vector<double> gradient_desc(); 
+    std::vector<double> newton_raphson();
+    std::vector<double> gauss_newton();
+
+
 
 
 
