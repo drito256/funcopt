@@ -1,1 +1,1 @@
-An overview of methods for finding a function’s minimum with and without requiring derivatives
+'''An overview of methods for finding a function’s minimum with and without requiring derivatives'''
