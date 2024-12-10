@@ -421,34 +421,31 @@ std::vector<double> optimize::gradient_desc(std::function<double(std::vector<dou
     std::vector<double> x = starting_point;
     std::vector<double> grad(x.size());
     std::vector<double> new_x(x.size());
-
     do {
-        for (int i = 0; i < x.size(); ++i) {
+        for (int i = 0; i < x.size(); i++) {
             grad[i] = part_deriv[i](x);
         }
 
         if (golden_ratio_used) {
             auto line_search_func = [&](double lambda) {
                 std::vector<double> temp_x = x;
-                for (int i = 0; i < x.size(); ++i) {
+                for (int i = 0; i < x.size(); i++) {
                     temp_x[i] -= lambda * grad[i];
                 }
                 return func(temp_x);
             };
-
             std::pair<double, double> interval = golden_search(line_search_func, 0.0, e);
-            double lambda = (interval.first + interval.second) / 2;
-
-            for (int i = 0; i < x.size(); ++i) {
-                new_x[i] = x[i] - lambda * grad[i];
+            double l = (interval.first + interval.second) / 2;
+            
+            for (int i = 0; i < x.size(); i++) {
+                new_x[i] = x[i] - l * grad[i];
             }
         } 
         else {
-            for (int i = 0; i < x.size(); ++i) {
+            for (int i = 0; i < x.size(); i++) {
                 new_x[i] = x[i] - grad[i];
             }
         }
-
         x = new_x;
 
     } while (!grad_desc_exit_condition(grad, e));
@@ -457,12 +454,14 @@ std::vector<double> optimize::gradient_desc(std::function<double(std::vector<dou
 
 static inline bool optimize::grad_desc_exit_condition(std::vector<double> &grad,
                                                       const double e){
-    double sum_sq = 0;
-
-    for(int i=0;i<grad.size();i++)
-        sum_sq += grad[i] * grad[i];
-    sum_sq = sqrt(sum_sq);
-    return sum_sq < e;
+    return vector_norm(grad) < e;
 }
 
+static inline double optimize::vector_norm(std::vector<double> &vec){
+    double res = 0;
+    for(int i = 0; i < vec.size(); i++)
+        res += (vec[i] * vec[i]);
+    res = sqrtf(res);
 
+    return res;
+}

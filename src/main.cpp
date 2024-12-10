@@ -5,7 +5,7 @@ namespace functions{
         return (x - 3) * (x - 3);
     };
     std::function<double(std::vector<double>)> parabolic2 = [](std::vector<double> x){
-        return (x[0] - 2) * (x[0] + 3);
+        return (x[0] - 2) * (x[0] - 2) + (x[1] + 3) * (x[1] + 3);
     };
 
     std::function<double(std::vector<double>)> rosenbrock = [](std::vector<double> x){
@@ -92,7 +92,9 @@ int main(){
     std::vector<double> point = optimize::gradient_desc(
                            functions::parabolic2,
                            partial,
-                           stp);
+                           stp,
+                           10e-6,
+                           true);
     std::cout << "Gradient descent >>> ";
     print_point(point);
     std::cout << "----------------------------------------------------------------------\n";

@@ -117,6 +117,7 @@ namespace optimize{
 
     inline static bool grad_desc_exit_condition(std::vector<double> &grad,
                                                 const double e = epsilon);
+    inline static double vector_norm(std::vector<double> &vec);
 }
 
 #endif
