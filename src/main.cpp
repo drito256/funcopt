@@ -5,7 +5,7 @@ namespace functions{
         return (x - 3) * (x - 3);
     };
     std::function<double(std::vector<double>)> parabolic2 = [](std::vector<double> x){
-        return (x[0] - 3) * (x[0] - 3);
+        return (x[0] - 2) * (x[0] + 3);
     };
 
     std::function<double(std::vector<double>)> rosenbrock = [](std::vector<double> x){
@@ -40,7 +40,12 @@ namespace functions{
               ((1 + 0.001 * sum) * (1 + 0.001 * sum));
     };
 
-
+    std::function<double(std::vector<double>)> partial1 = [](std::vector<double> x){
+        return 2 * x[0] - 4;
+    };
+    std::function<double(std::vector<double>)> partial2 = [](std::vector<double> x){
+        return 2 * x[1] + 6;
+    };
 
 }
 
@@ -79,192 +84,20 @@ int main(){
     
 
 
-
-    std::cout << "==================================ZAD1=================================" << std::endl;
-    constexpr double starting_point = 10; 
-    constexpr double epsilon = 10e-6;
-    std::pair<double, double> interval = optimize::golden_search(
-                                                   functions::parabolic,
-                                                   starting_point,
-                                                   epsilon);
-    std::cout << "Golden ratio search >>> ";
-    print_interval(interval);
-    std::cout << "----------------------------------------------------------------------\n";
-
-
-
-    std::vector<double> starting_point2 = {starting_point};
-    std::vector<double> epsilon2 = {epsilon};
-    std::vector<double> point = optimize::coord_search(functions::parabolic2,
-                                                       starting_point2,
-                                                       epsilon2);
-    std::cout << "Coordinate search result >>> ";
+    std::vector<std::function<double(std::vector<double>)>> partial;
+    partial.push_back(functions::partial1);
+    partial.push_back(functions::partial2);
+    std::cout << "okkk" << std::endl;
+    std::vector<double> stp = std::vector<double>{0,0};
+    std::vector<double> point = optimize::gradient_desc(
+                           functions::parabolic2,
+                           partial,
+                           stp);
+    std::cout << "Gradient descent >>> ";
     print_point(point);
     std::cout << "----------------------------------------------------------------------\n";
 
-    std::vector<std::vector<double>> simplex = optimize::nm_simplex(functions::parabolic2,
-                                 starting_point2);
-
-    std::cout << "Nelder-Mead simplex result >>> \n";
-    print_simplex(simplex);
-    std::cout << "----------------------------------------------------------------------\n";
-    
-    point = optimize::hooke_jeeves(functions::parabolic2,
-                                   starting_point2,
-                                   epsilon2);
-    std::cout << "Hooke-Jeeves search >>> ";
-    print_point(point);
-
-    std::cout << "\n===============================ZAD2=============================\n\n";
-    starting_point2 = {-1.9, 2};
-    epsilon2 = {epsilon, epsilon};
-    point = optimize::coord_search(functions::rosenbrock,
-                                   starting_point2,
-                                   epsilon2);
-    std::cout << "Coord search result >>> ";
-    print_point(point);
-    std::cout << "----------------------------------------------------------------------\n";
-    
-
-    simplex = optimize::nm_simplex(functions::rosenbrock,
-                                  starting_point2);
-    std::cout << "Nelder-Mead simplex result >>> \n";
-    print_simplex(simplex);
-    std::cout << "----------------------------------------------------------------------\n";
-    
-
-    point = optimize::hooke_jeeves(
-                           functions::rosenbrock,
-                           starting_point2,
-                           epsilon2);
-    std::cout << "Hooke-Jeeves search >>> ";
-    print_point(point);
-
-    // Second function
-    std::cout << "\n++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n\n";
-    
-    starting_point2 = {0.1, 0.3};
-    point = optimize::coord_search(functions::f2,
-                                   starting_point2,
-                                   epsilon2);
-    std::cout << "Coord search result >>> ";
-    print_point(point);
-    std::cout << "----------------------------------------------------------------------\n";
-    
-
-    simplex = optimize::nm_simplex(functions::f2,
-                                  starting_point2);
-    std::cout << "Nelder-Mead simplex result >>> \n";
-    print_simplex(simplex);
-    std::cout << "----------------------------------------------------------------------\n";
-    
-
-    point = optimize::hooke_jeeves(
-                           functions::f2,
-                           starting_point2,
-                           epsilon2);
-    std::cout << "Hooke-Jeeves search >>> ";
-    print_point(point);
-    std::cout << "----------------------------------------------------------------------\n";
-
-// Third function
-    std::cout << "\n++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n\n";
-    
-    starting_point2 = {0, 0, 0, 0, 0};
-    epsilon2 = {epsilon, epsilon, epsilon, epsilon, epsilon};
-    point = optimize::coord_search(functions::f3,
-                                   starting_point2,
-                                   epsilon2);
-    std::cout << "Coord search result >>> ";
-    print_point(point);
-    std::cout << "----------------------------------------------------------------------\n";
-    
-
-    simplex = optimize::nm_simplex(functions::f3,
-                                  starting_point2);
-    std::cout << "Nelder-Mead simplex result >>> \n";
-    print_simplex(simplex);
-    std::cout << "----------------------------------------------------------------------\n";
-    
-
-    point = optimize::hooke_jeeves(
-                           functions::f3,
-                           starting_point2,
-                           epsilon2);
-    std::cout << "Hooke-Jeeves search >>> ";
-    print_point(point);
-    std::cout << "----------------------------------------------------------------------\n";
-
-    // Fourth function
-    std::cout << "\n++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n\n";
-    
-    starting_point2 = {5.1, 1.1};
-    epsilon2 = {epsilon, epsilon};
-    point = optimize::coord_search(functions::f4,
-                                   starting_point2,
-                                   epsilon2);
-    std::cout << "Coord search result >>> ";
-    print_point(point);
-    std::cout << "----------------------------------------------------------------------\n";
-    
-
-    simplex = optimize::nm_simplex(functions::f4,
-                                  starting_point2);
-    std::cout << "Nelder-Mead simplex result >>> \n";
-    print_simplex(simplex);
-    std::cout << "----------------------------------------------------------------------\n";
-    
-
-    point = optimize::hooke_jeeves(
-                           functions::f4,
-                           starting_point2,
-                           epsilon2);
-    std::cout << "Hooke-Jeeves search >>> ";
-    print_point(point);
-    std::cout << "----------------------------------------------------------------------\n";
-
-    std::cout << "\n===============================ZAD3=============================\n\n";
-    starting_point2 = {5, 5};
-    simplex = optimize::nm_simplex(functions::f4,
-                                  starting_point2);
-    std::cout << "Nelder-Mead simplex result >>> \n";
-    print_simplex(simplex);
-    std::cout << "----------------------------------------------------------------------\n";
-    
-
-    point = optimize::hooke_jeeves(
-                           functions::f4,
-                           starting_point2,
-                           epsilon2);
-    std::cout << "Hooke-Jeeves search >>> ";
-    print_point(point);
-    std::cout << "----------------------------------------------------------------------\n";
-
-    std::cout << "\n===============================ZAD4=============================\n\n";
-    starting_point2 = {0.5, 0.5};
-    simplex = optimize::nm_simplex(functions::rosenbrock,
-                                  starting_point2);
-    std::cout << "Nelder-Mead simplex result >>> \n";
-    print_simplex(simplex);
-    std::cout << "----------------------------------------------------------------------\n";
-    
-
-    point = optimize::hooke_jeeves(
-                           functions::rosenbrock,
-                           starting_point2,
-                           epsilon2);
-    std::cout << "Hooke-Jeeves search >>> ";
-    print_point(point);
-    std::cout << "----------------------------------------------------------------------\n";
-
-std::cout << "\n===============================ZAD5=============================\n\n";
-    starting_point2 = {0.5, 0.5};
-    simplex = optimize::nm_simplex(functions::f6,
-                                  starting_point2);
-    std::cout << "Nelder-Mead simplex result >>> \n";
-    print_simplex(simplex);
-
-                                                        
+                                                   
     return 0;
 }
 

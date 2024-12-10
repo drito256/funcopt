@@ -410,3 +410,59 @@ static inline bool optimize::hj_exit_condition(const std::vector<double> &delta,
     }
     return true;
 }
+
+
+std::vector<double> optimize::gradient_desc(std::function<double(std::vector<double>)> func,
+                                  std::vector<std::function<double(std::vector<double>)>> part_deriv,
+                                  const std::vector<double> &starting_point,
+                                  const double e,
+                                  const bool golden_ratio_used){
+
+    std::vector<double> x = starting_point;
+    std::vector<double> grad(x.size());
+    std::vector<double> new_x(x.size());
+
+    do {
+        for (int i = 0; i < x.size(); ++i) {
+            grad[i] = part_deriv[i](x);
+        }
+
+        if (golden_ratio_used) {
+            auto line_search_func = [&](double lambda) {
+                std::vector<double> temp_x = x;
+                for (int i = 0; i < x.size(); ++i) {
+                    temp_x[i] -= lambda * grad[i];
+                }
+                return func(temp_x);
+            };
+
+            std::pair<double, double> interval = golden_search(line_search_func, 0.0, e);
+            double lambda = (interval.first + interval.second) / 2;
+
+            for (int i = 0; i < x.size(); ++i) {
+                new_x[i] = x[i] - lambda * grad[i];
+            }
+        } 
+        else {
+            for (int i = 0; i < x.size(); ++i) {
+                new_x[i] = x[i] - grad[i];
+            }
+        }
+
+        x = new_x;
+
+    } while (!grad_desc_exit_condition(grad, e));
+    return x;
+};
+
+static inline bool optimize::grad_desc_exit_condition(std::vector<double> &grad,
+                                                      const double e){
+    double sum_sq = 0;
+
+    for(int i=0;i<grad.size();i++)
+        sum_sq += grad[i] * grad[i];
+    sum_sq = sqrt(sum_sq);
+    return sum_sq < e;
+}
+
+

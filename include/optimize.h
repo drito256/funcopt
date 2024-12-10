@@ -44,21 +44,22 @@ namespace optimize{
     // ---------------- METHODS THAT REQUIRE DERIVATIVES -----------------
     // -------------------------------------------------------------------
     std::vector<double> gradient_desc(std::function<double(std::vector<double>)> func,
+                                      std::vector<std::function<double(std::vector<double>)>> part_derivative,
                                       const std::vector<double> &starting_point,
                                       const double e = epsilon,
                                       const bool golden_ratio_used = true); 
+
     std::vector<double> newton_raphson(std::function<double(std::vector<double>)> func,
+                                      std::vector<std::function<double(std::vector<double>)>> func_derivative,
                                       const std::vector<double> &starting_point,
                                       const double e = epsilon,
                                       const bool golden_ratio_used = true); 
 ;
     std::vector<double> gauss_newton(std::function<double(std::vector<double>)> func,
+                                      std::vector<std::function<double(std::vector<double>)>> func_derivative,
                                       const std::vector<double> &starting_point,
                                       const double e = epsilon,
                                       const bool golden_ratio_used = true);
-
-
-
 
 
 
@@ -113,6 +114,9 @@ namespace optimize{
 
     inline static bool hj_exit_condition(const std::vector<double> &delta,
                                          const std::vector<double> &e);
+
+    inline static bool grad_desc_exit_condition(std::vector<double> &grad,
+                                                const double e = epsilon);
 }
 
 #endif
