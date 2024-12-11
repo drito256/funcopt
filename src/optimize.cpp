@@ -485,12 +485,14 @@ std::vector<double> optimize::newton_raphson(std::function<double(std::vector<do
                 hesse(i,j) = hesse_matrix[i][j](x);
             }
         }
+        delta = hesse.inverse() * grad; 
+        delta *= -1;
 
         if (golden_ratio_used) {
-            /*auto line_search_func = [&](double lambda) {
+            auto line_search_func = [&](double lambda) {
                 std::vector<double> temp_x = x;
                 for (int i = 0; i < x.size(); i++) {
-                    temp_x[i] -= lambda * grad[i];
+                    temp_x[i] -= lambda * delta(i,0);
                 }
                 return func(temp_x);
             };
@@ -498,12 +500,10 @@ std::vector<double> optimize::newton_raphson(std::function<double(std::vector<do
             double l = (interval.first + interval.second) / 2;
             
             for (int i = 0; i < x.size(); i++) {
-                new_x[i] = x[i] - l * grad[i];
-            }*/
+                new_x[i] = x[i] - l * delta(i, 0);
+            }
         } 
         else {
-            delta = hesse.inverse() * grad; 
-            delta *= -1;
             for (int i = 0; i < x.size(); i++) {
                 new_x[i] = x[i] + delta(i, 0);
             }

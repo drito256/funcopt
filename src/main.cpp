@@ -142,7 +142,7 @@ int main(){
                            hesse,
                            stp,
                            10e-6,
-                           false);
+                           true);
     std::cout << "Newton - raphson >>> ";
     print_point(point);
     std::cout << "----------------------------------------------------------------------\n";
