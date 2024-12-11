@@ -44,20 +44,20 @@ namespace optimize{
     // ---------------- METHODS THAT REQUIRE DERIVATIVES -----------------
     // -------------------------------------------------------------------
     std::vector<double> gradient_desc(std::function<double(std::vector<double>)> func,
-                                      std::vector<std::function<double(std::vector<double>)>> part_derivative,
+                                      std::vector<std::function<double(std::vector<double>)>> &part_derivative,
                                       const std::vector<double> &starting_point,
                                       const double e = epsilon,
                                       const bool golden_ratio_used = true); 
 
     std::vector<double> newton_raphson(std::function<double(std::vector<double>)> func,
-                                      std::vector<std::function<double(std::vector<double>)>> part_derivs,
-                                      std::vector<std::vector<std::function<double(std::vector<double>)>>> hesse_matrix,
+                                      std::vector<std::function<double(std::vector<double>)>> &part_derivs,
+                                      std::vector<std::vector<std::function<double(std::vector<double>)>>> &hesse_matrix,
                                       const std::vector<double> &starting_point,
                                       const double e = epsilon,
                                       const bool golden_ratio_used = true); 
 ;
-    std::vector<double> gauss_newton(std::function<double(std::vector<double>)> func,
-                                      std::vector<std::function<double(std::vector<double>)>> func_derivative,
+    std::vector<double> gauss_newton(std::vector<std::function<double(std::vector<double>)>> &funcs,
+                                      std::vector<std::vector<std::function<double(std::vector<double>)>>> &jacobian_matrix,
                                       const std::vector<double> &starting_point,
                                       const double e = epsilon,
                                       const bool golden_ratio_used = true);

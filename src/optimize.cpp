@@ -413,7 +413,7 @@ static inline bool optimize::hj_exit_condition(const std::vector<double> &delta,
 
 
 std::vector<double> optimize::gradient_desc(std::function<double(std::vector<double>)> func,
-                                  std::vector<std::function<double(std::vector<double>)>> part_deriv,
+                                  std::vector<std::function<double(std::vector<double>)>> &part_deriv,
                                   const std::vector<double> &starting_point,
                                   const double e,
                                   const bool golden_ratio_used){
@@ -467,8 +467,8 @@ static inline double optimize::vector_norm(std::vector<double> &vec){
 }
 
 std::vector<double> optimize::newton_raphson(std::function<double(std::vector<double>)> func,
-                                  std::vector<std::function<double(std::vector<double>)>> part_deriv,
-                                  std::vector<std::vector<std::function<double(std::vector<double>)>>> hesse_matrix,
+                                  std::vector<std::function<double(std::vector<double>)>> &part_deriv,
+                                  std::vector<std::vector<std::function<double(std::vector<double>)>>> &hesse_matrix,
                                   const std::vector<double> &starting_point,
                                   const double e,
                                   const bool golden_ratio_used){
@@ -524,4 +524,57 @@ static inline bool optimize::new_rap_exit_condition(Matrix delta, const double e
     return vector_norm(v) < e;
 }
 
+std::vector<double> optimize::gauss_newton(
+                                  std::vector<std::function<double(std::vector<double>)>> &funcs,
+                                  std::vector<std::vector<std::function<double(std::vector<double>)>>> &jacobian_matrix,
+                                  const std::vector<double> &starting_point,
+                                  const double e,
+                                  const bool golden_ratio_used){
+    std::vector<double> x = starting_point;
+    Matrix jacobian{x.size(), x.size()};
+    Matrix delta{x.size(), 1};
+    Matrix G{x.size(), 1};
+    std::vector<double> new_x(x.size());
+    do {
+        for (int i = 0; i < x.size(); i++) {
+            for(int j=0; j < x.size(); j++){
+                jacobian(i,j) = jacobian_matrix[i][j](x);
+            }
+            G(i,0) = funcs[i](x);
+        }
+        delta = jacobian.inverse() * G; 
+        delta *= -1;
 
+        if (golden_ratio_used) {  
+            auto line_search_func = [&](double lambda) {
+            // Compute the function value for a given lambda
+            std::vector<double> temp_x = x;
+            for (int i = 0; i < x.size(); i++) {
+                temp_x[i] -= lambda * delta(i, 0);
+            }
+
+            double func_value = 0.0;
+            for (int i = 0; i < funcs.size(); i++) {
+                func_value += std::pow(funcs[i](temp_x), 2);
+            }
+            return func_value;
+        };
+            std::pair<double, double> interval = golden_search(line_search_func, 0.0, 1.0); // Interval can be tuned
+            double lambda = (interval.first + interval.second) / 2; // Optimal lambda
+
+            // Update x using the computed lambda
+            for (int i = 0; i < x.size(); i++) {
+                new_x[i] = x[i] - lambda * delta(i, 0);
+            }
+        } 
+        else {
+            for (int i = 0; i < x.size(); i++) {
+                new_x[i] = x[i] + delta(i, 0);
+            }
+        }
+        std::cout << x[0] << std::endl;
+        x = new_x;
+    } while (!new_rap_exit_condition(delta, e)); // its the same exit condition as previous algo
+    return x;
+
+};
