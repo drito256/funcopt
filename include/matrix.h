@@ -14,6 +14,7 @@ class Matrix{
     public:
         Matrix(size_t rows, size_t columns, std::unique_ptr<double[]> data);
         Matrix(size_t rows, size_t columns, std::vector<double> data);
+        Matrix(size_t rows, size_t columns);
         Matrix(const std::string& filename);
         Matrix(const Matrix& other);
         Matrix(std::vector<double> v);

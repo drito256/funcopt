@@ -50,7 +50,8 @@ namespace optimize{
                                       const bool golden_ratio_used = true); 
 
     std::vector<double> newton_raphson(std::function<double(std::vector<double>)> func,
-                                      std::vector<std::function<double(std::vector<double>)>> func_derivative,
+                                      std::vector<std::function<double(std::vector<double>)>> part_derivs,
+                                      std::vector<std::vector<std::function<double(std::vector<double>)>>> hesse_matrix,
                                       const std::vector<double> &starting_point,
                                       const double e = epsilon,
                                       const bool golden_ratio_used = true); 
@@ -117,6 +118,8 @@ namespace optimize{
 
     inline static bool grad_desc_exit_condition(std::vector<double> &grad,
                                                 const double e = epsilon);
+    inline static bool new_rap_exit_condition(Matrix delta,
+                                              const double e = epsilon);
     inline static double vector_norm(std::vector<double> &vec);
 }
 

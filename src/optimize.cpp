@@ -465,3 +465,63 @@ static inline double optimize::vector_norm(std::vector<double> &vec){
 
     return res;
 }
+
+std::vector<double> optimize::newton_raphson(std::function<double(std::vector<double>)> func,
+                                  std::vector<std::function<double(std::vector<double>)>> part_deriv,
+                                  std::vector<std::vector<std::function<double(std::vector<double>)>>> hesse_matrix,
+                                  const std::vector<double> &starting_point,
+                                  const double e,
+                                  const bool golden_ratio_used){
+
+    std::vector<double> x = starting_point;
+    Matrix grad(x.size(), 1);
+    Matrix hesse{x.size(), x.size()};
+    Matrix delta{x.size(), 1};
+    std::vector<double> new_x(x.size());
+    do {
+        for (int i = 0; i < x.size(); i++) {
+            grad(i, 0) = part_deriv[i](x);
+            for(int j=0; j < x.size(); j++){
+                hesse(i,j) = hesse_matrix[i][j](x);
+            }
+        }
+
+        if (golden_ratio_used) {
+            /*auto line_search_func = [&](double lambda) {
+                std::vector<double> temp_x = x;
+                for (int i = 0; i < x.size(); i++) {
+                    temp_x[i] -= lambda * grad[i];
+                }
+                return func(temp_x);
+            };
+            std::pair<double, double> interval = golden_search(line_search_func, 0.0, e);
+            double l = (interval.first + interval.second) / 2;
+            
+            for (int i = 0; i < x.size(); i++) {
+                new_x[i] = x[i] - l * grad[i];
+            }*/
+        } 
+        else {
+            delta = hesse.inverse() * grad; 
+            delta *= -1;
+            for (int i = 0; i < x.size(); i++) {
+                new_x[i] = x[i] + delta(i, 0);
+            }
+        }
+        x = new_x;
+
+    } while (!new_rap_exit_condition(delta, e));
+    return x;
+};
+
+static inline bool optimize::new_rap_exit_condition(Matrix delta, const double e){
+    std::vector<double> v(delta.getColumns() * delta.getRows());
+
+    for(int i = 0;i<v.size();i++){
+        v[i] = delta(i, 0);
+    }
+
+    return vector_norm(v) < e;
+}
+
+

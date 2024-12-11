@@ -16,10 +16,18 @@ Matrix::Matrix(size_t rows, size_t columns, std::vector<double> data)
             , m_columns(columns)
             , m_data(std::make_unique<double[]>(rows * columns))
 {
+    std::copy(data.begin(), data.end(), m_data.get());
     m_swap_count = 0;
 }
 
-
+Matrix::Matrix(size_t rows, size_t columns)
+            : m_rows(rows)
+            , m_columns(columns)
+            , m_data(std::make_unique<double[]>(rows * columns))
+{
+    std::fill(m_data.get(), m_data.get() + rows * columns, 0.0);
+    m_swap_count = 0;
+}
 
 // Constructor 2
 Matrix::Matrix(const std::string& filename){
@@ -533,8 +541,8 @@ Matrix Matrix::inverse(){
     Matrix inv(n, n, std::make_unique<double[]>(n * n));
     
     std::pair<Matrix, Matrix> lup = this->LUP_decomp();
-    lup.first.print();
-    lup.second.print();
+    //lup.first.print();
+    //lup.second.print();
     
     // solve for each column of the inverse
     for (int i = 0; i < n; i++) {

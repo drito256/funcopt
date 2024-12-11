@@ -47,6 +47,32 @@ namespace functions{
         return 2 * x[1] + 6;
     };
 
+    std::function<double(std::vector<double>)> hesse1 = [](std::vector<double> x){
+        return 2;
+    };
+    std::function<double(std::vector<double>)> hesse2 = [](std::vector<double> x){
+        return 0;
+    };
+    std::function<double(std::vector<double>)> hesse3 = [](std::vector<double> x){
+        return 0;
+    };
+    std::function<double(std::vector<double>)> hesse4 = [](std::vector<double> x){
+        return 8;
+    };
+    std::function<double(std::vector<double>)> f2_partial1 = [](std::vector<double> x){
+        return 2 * x[0] - 8;
+    };
+    std::function<double(std::vector<double>)> f2_partial2 = [](std::vector<double> x){
+        return 8 * x[1] - 16;
+    };
+
+
+    
+
+
+
+
+
 }
 
 
@@ -98,6 +124,30 @@ int main(){
     std::cout << "Gradient descent >>> ";
     print_point(point);
     std::cout << "----------------------------------------------------------------------\n";
+
+    std::vector<std::function<double(std::vector<double>)>> partial2;
+    partial2.push_back(functions::f2_partial1);
+    partial2.push_back(functions::f2_partial2);
+    std::vector<std::vector<std::function<double(std::vector<double>)>>> hesse(2);
+    hesse[0].push_back(functions::hesse1);
+    hesse[0].push_back(functions::hesse2);
+    hesse[1].push_back(functions::hesse3);
+    hesse[1].push_back(functions::hesse4);
+
+    std::cout << "okkk" << std::endl;
+    stp = std::vector<double>{0,0};
+    point = optimize::newton_raphson(
+                           functions::f2,
+                           partial2,
+                           hesse,
+                           stp,
+                           10e-6,
+                           false);
+    std::cout << "Newton - raphson >>> ";
+    print_point(point);
+    std::cout << "----------------------------------------------------------------------\n";
+
+
 
                                                    
     return 0;
