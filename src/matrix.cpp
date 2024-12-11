@@ -538,16 +538,15 @@ Matrix Matrix::inverse(){
     }
 
     int n = this->m_rows;
-    Matrix inv(n, n, std::make_unique<double[]>(n * n));
+    Matrix inv(n, n);
     
     std::pair<Matrix, Matrix> lup = this->LUP_decomp();
     //lup.first.print();
     //lup.second.print();
     
-    // solve for each column of the inverse
     for (int i = 0; i < n; i++) {
         // create the i-th column of the identity matrix
-        Matrix e(n,1,std::make_unique<double[]>(n));
+        Matrix e(n,1);
         // init matrix
         for(int j=0;j<n;j++)
             e(j,0) = 0;

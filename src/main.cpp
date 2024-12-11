@@ -13,6 +13,14 @@ namespace functions{
            + ((1 - x[0]) * ( 1 - x[0]));
     };
 
+    std::function<double(std::vector<double>)> rosenbrock1 = [](std::vector<double> x){
+        return 10 * (x[1] - x[0] * x[0]);
+    };
+    std::function<double(std::vector<double>)> rosenbrock2 = [](std::vector<double> x){
+        return 1 - x[0];
+    };
+
+
     std::function<double(std::vector<double>)> f3 = [](std::vector<double> x){
         double sum = 0;
         for(int i=0;i<x.size();i++){
@@ -85,6 +93,21 @@ namespace functions{
     std::function<double(std::vector<double>)> jac4 = [](std::vector<double> x){
         return 1;
     };
+
+     std::function<double(std::vector<double>)> jac1_r = [](std::vector<double> x){
+        return -20 * x[0];
+    };
+    std::function<double(std::vector<double>)> jac2_r = [](std::vector<double> x){
+        return 10;
+    };
+    std::function<double(std::vector<double>)> jac3_r = [](std::vector<double> x){
+        return -1;
+    };
+    std::function<double(std::vector<double>)> jac4_r = [](std::vector<double> x){
+        return 0;
+    };
+
+
 
 
 
@@ -168,6 +191,31 @@ int main(){
     print_point(point);
     std::cout << "----------------------------------------------------------------------\n";
     
+    std::vector<std::function<double(std::vector<double>)>> gn1;
+    gn1.push_back(functions::rosenbrock1);
+    gn1.push_back(functions::rosenbrock2);
+
+    std::vector<std::vector<std::function<double(std::vector<double>)>>> jacobian1(2);
+    jacobian1[0].push_back(functions::jac1_r);
+    jacobian1[0].push_back(functions::jac2_r);
+    jacobian1[1].push_back(functions::jac3_r);
+    jacobian1[1].push_back(functions::jac4_r);
+
+
+
+    stp = std::vector<double>{-1.9, 2};
+    point = optimize::gauss_newton(
+                           gn1,
+                           jacobian1,
+                           stp,
+                           10e-6,
+                           true);
+    std::cout << "Gauss - Newton >>> ";
+    print_point(point);
+    std::cout << "----------------------------------------------------------------------\n";
+
+
+
     std::vector<std::function<double(std::vector<double>)>> gn;
     gn.push_back(functions::gn1);
     gn.push_back(functions::gn2);
@@ -180,7 +228,7 @@ int main(){
 
 
 
-    stp = std::vector<double>{2, -2};
+    stp = std::vector<double>{2, 2};
     point = optimize::gauss_newton(
                            gn,
                            jacobian,
