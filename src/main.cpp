@@ -153,11 +153,10 @@ void print_simplex(std::vector<std::vector<double>> &simplex){
 int main(){
     
 
-
+    std::cout << "===================ZAD1===================" << std::endl;
     std::vector<std::function<double(std::vector<double>)>> partial;
     partial.push_back(functions::partial1);
     partial.push_back(functions::partial2);
-    std::cout << "okkk" << std::endl;
     std::vector<double> stp = std::vector<double>{0,0};
     std::vector<double> point = optimize::gradient_desc(
                            functions::parabolic2,
@@ -165,10 +164,22 @@ int main(){
                            stp,
                            10e-6,
                            true);
-    std::cout << "Gradient descent >>> ";
+    std::cout << "Gradient descent without golden search>>> ";
     print_point(point);
-    std::cout << "----------------------------------------------------------------------\n";
+    std::cout << "--------------------------------------------\n";
+    point = optimize::gradient_desc(
+                           functions::parabolic2,
+                           partial,
+                           stp,
+                           10e-6,
+                           true);
+    std::cout << "Gradient descent with golden search>>> ";
+    print_point(point);
+    std::cout << "-------------------------------------------\n";
 
+
+
+    std::cout << "===================ZAD2===================" << std::endl;
     std::vector<std::function<double(std::vector<double>)>> partial2;
     partial2.push_back(functions::f2_partial1);
     partial2.push_back(functions::f2_partial2);
@@ -177,8 +188,19 @@ int main(){
     hesse[0].push_back(functions::hesse2);
     hesse[1].push_back(functions::hesse3);
     hesse[1].push_back(functions::hesse4);
+    stp = {-1.9, 2}; 
 
-    std::cout << "okkk" << std::endl;
+    point = optimize::gradient_desc(
+                           functions::f2,
+                           partial2,
+                           stp,
+                           10e-6,
+                           true);
+    std::cout << "Gradient descent >>> ";
+    print_point(point);
+    std::cout << "-------------------------------------------------\n";
+
+
     stp = std::vector<double>{0,0};
     point = optimize::newton_raphson(
                            functions::f2,
@@ -189,7 +211,7 @@ int main(){
                            true);
     std::cout << "Newton - Raphson >>> ";
     print_point(point);
-    std::cout << "----------------------------------------------------------------------\n";
+    std::cout << "----------------------------------------------\n";
     
     std::vector<std::function<double(std::vector<double>)>> gn1;
     gn1.push_back(functions::rosenbrock1);
