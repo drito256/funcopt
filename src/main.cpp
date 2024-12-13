@@ -8,16 +8,48 @@ namespace functions{
         return (x[0] - 2) * (x[0] - 2) + (x[1] + 3) * (x[1] + 3);
     };
 
+
+
+
+    // Rosenbrock function / Rosenbrock seperated into 2 funcs / partial derivatives
     std::function<double(std::vector<double>)> rosenbrock = [](std::vector<double> x){
         return 100 * ((x[1] - x[0] * x[0]) * (x[1] - x[0] * x[0]))  
            + ((1 - x[0]) * ( 1 - x[0]));
     };
-
     std::function<double(std::vector<double>)> rosenbrock1 = [](std::vector<double> x){
         return 10 * (x[1] - x[0] * x[0]);
     };
     std::function<double(std::vector<double>)> rosenbrock2 = [](std::vector<double> x){
         return 1 - x[0];
+    };
+    std::function<double(std::vector<double>)> rosenbrock1_x = [](std::vector<double> x){
+        return -20 * x[0];
+    };
+    std::function<double(std::vector<double>)> rosenbrock1_y = [](std::vector<double> x){
+        return 10;
+    };
+    std::function<double(std::vector<double>)> rosenbrock2_x = [](std::vector<double> x){
+        return -1;
+    };
+    std::function<double(std::vector<double>)> rosenbrock2_y = [](std::vector<double> x){
+        return 0;
+    };
+
+
+    std::function<double(std::vector<double>)> rosenbrock_x = [](std::vector<double> x){
+        return -400 * x[0] * (-x[0] * x[0] + x[1]) + 2 * x[0] - 2;
+    };
+    std::function<double(std::vector<double>)> rosenbrock_y = [](std::vector<double> x){
+        return -200 * x[0] * x[0] + 200 * x[1];
+    };
+    std::function<double(std::vector<double>)> rosenbrock_xx = [](std::vector<double> x){
+        return 1200 * x[0] * x[0] - 400 * x[1] + 2;
+    };
+    std::function<double(std::vector<double>)> rosenbrock_yy = [](std::vector<double> x){
+        return 200;
+    };
+    std::function<double(std::vector<double>)> rosenbrock_xy = [](std::vector<double> x){
+        return -400 * x[0];
     };
 
 
@@ -34,8 +66,23 @@ namespace functions{
     };
     
     std::function<double(std::vector<double>)> f4 = [](std::vector<double> x){
-        return fabs((x[0] - x[1]) * (x[0] + x[1])) + 
-               sqrtf(x[0] * x[0] + x[1] * x[1]); 
+        return pow(x[0], 4) / 4 - x[0] * x[0] + 2 * x[0] + pow(x[1] - 1, 2);
+    };
+
+    std::function<double(std::vector<double>)> f4_x = [](std::vector<double> x){
+        return pow(x[0], 3) - 2 * x[0] + 2;
+    };
+    std::function<double(std::vector<double>)> f4_xx = [](std::vector<double> x){
+        return 3 * x[0] * x[0] - 2;
+    };
+    std::function<double(std::vector<double>)> f4_y = [](std::vector<double> x){
+        return 2 * x[1] - 2;
+    };
+    std::function<double(std::vector<double>)> f4_yy = [](std::vector<double> x){
+        return 2;
+    };
+    std::function<double(std::vector<double>)> f4_xy = [](std::vector<double> x){
+        return 0;
     };
     
     std::function<double(std::vector<double>)> f6 = [](std::vector<double> x){
@@ -94,28 +141,6 @@ namespace functions{
         return 1;
     };
 
-     std::function<double(std::vector<double>)> jac1_r = [](std::vector<double> x){
-        return -20 * x[0];
-    };
-    std::function<double(std::vector<double>)> jac2_r = [](std::vector<double> x){
-        return 10;
-    };
-    std::function<double(std::vector<double>)> jac3_r = [](std::vector<double> x){
-        return -1;
-    };
-    std::function<double(std::vector<double>)> jac4_r = [](std::vector<double> x){
-        return 0;
-    };
-
-
-
-
-
-    
-
-
-
-
 
 }
 
@@ -157,13 +182,13 @@ int main(){
     std::vector<std::function<double(std::vector<double>)>> partial;
     partial.push_back(functions::partial1);
     partial.push_back(functions::partial2);
-    std::vector<double> stp = std::vector<double>{0,0};
+    std::vector<double> stp = std::vector<double>{0, 0};
     std::vector<double> point = optimize::gradient_desc(
                            functions::parabolic2,
                            partial,
                            stp,
                            10e-6,
-                           true);
+                           false);
     std::cout << "Gradient descent without golden search>>> ";
     print_point(point);
     std::cout << "--------------------------------------------\n";
@@ -181,14 +206,50 @@ int main(){
 
     std::cout << "===================ZAD2===================" << std::endl;
     std::vector<std::function<double(std::vector<double>)>> partial2;
+    partial2.push_back(functions::rosenbrock_x);
+    partial2.push_back(functions::rosenbrock_y);
+    std::vector<std::vector<std::function<double(std::vector<double>)>>> hesse(2);
+    hesse[0].push_back(functions::rosenbrock_xx);
+    hesse[0].push_back(functions::rosenbrock_xy);
+    hesse[1].push_back(functions::rosenbrock_xy);
+    hesse[1].push_back(functions::rosenbrock_yy);
+    stp.clear();
+    stp = {-1.9, 2};
+
+    point = optimize::gradient_desc(
+                           functions::rosenbrock,
+                           partial2,
+                           stp,
+                           10e-6,
+                           true);
+    std::cout << "Gradient descent >>> ";
+    print_point(point);
+    std::cout << "-------------------------------------------------\n";
+
+
+    stp = std::vector<double>{0,0};
+    point = optimize::newton_raphson(
+                           functions::rosenbrock,
+                           partial2,
+                           hesse,
+                           stp,
+                           10e-6,
+                           true);
+    std::cout << "Newton - Raphson >>> ";
+    print_point(point);
+    std::cout << "----------------------------------------------\n";
+    
+    stp = {0.1, 0.3}; 
+    partial2.clear();
     partial2.push_back(functions::f2_partial1);
     partial2.push_back(functions::f2_partial2);
-    std::vector<std::vector<std::function<double(std::vector<double>)>>> hesse(2);
+    hesse[0].clear();
+    hesse[1].clear();
     hesse[0].push_back(functions::hesse1);
     hesse[0].push_back(functions::hesse2);
     hesse[1].push_back(functions::hesse3);
     hesse[1].push_back(functions::hesse4);
-    stp = {-1.9, 2}; 
+
 
     point = optimize::gradient_desc(
                            functions::f2,
@@ -212,16 +273,80 @@ int main(){
     std::cout << "Newton - Raphson >>> ";
     print_point(point);
     std::cout << "----------------------------------------------\n";
+
+
+    std::cout << "========================ZAD3============================\n";
     
+    stp.clear();
+    stp = {3, 3}; 
+    partial2.clear();
+    partial2.push_back(functions::f4_x);
+    partial2.push_back(functions::f4_y);
+    hesse[0].clear();
+    hesse[1].clear();
+    hesse[0].push_back(functions::f4_xx);
+    hesse[0].push_back(functions::f4_xy);
+    hesse[1].push_back(functions::f4_xy);
+    hesse[1].push_back(functions::f4_yy);
+
+    point = optimize::newton_raphson(
+                           functions::f4,
+                           partial2,
+                           hesse,
+                           stp,
+                           10e-6,
+                           false);
+    std::cout << "Newton - Raphson without lambda optimisation (3,3) >>> ";
+    print_point(point);
+    point = optimize::newton_raphson(
+                           functions::f4,
+                           partial2,
+                           hesse,
+                           stp,
+                           10e-6,
+                           true);
+
+    std::cout << "Newton - Raphson with lambda optimisation (3,3) >>> ";
+    print_point(point);
+
+    std::cout << "----------------------------------------------\n";
+    stp = std::vector<double>{1,2};
+    point = optimize::newton_raphson(
+                           functions::f4,
+                           partial2,
+                           hesse,
+                           stp,
+                           10e-6,
+                           false);
+    std::cout << "Newton - Raphson without lambda optimisation (1,2) >>> ";
+    print_point(point);
+
+    point = optimize::newton_raphson(
+                           functions::f4,
+                           partial2,
+                           hesse,
+                           stp,
+                           10e-6,
+                           true);
+
+    std::cout << "Newton - Raphson with lambda optimisation (1,2) >>> ";
+    print_point(point);
+
+    std::cout << "----------------------------------------------\n";
+    
+
+    
+    
+    std::cout << "========================ZAD4==============================\n";
     std::vector<std::function<double(std::vector<double>)>> gn1;
     gn1.push_back(functions::rosenbrock1);
     gn1.push_back(functions::rosenbrock2);
 
     std::vector<std::vector<std::function<double(std::vector<double>)>>> jacobian1(2);
-    jacobian1[0].push_back(functions::jac1_r);
-    jacobian1[0].push_back(functions::jac2_r);
-    jacobian1[1].push_back(functions::jac3_r);
-    jacobian1[1].push_back(functions::jac4_r);
+    jacobian1[0].push_back(functions::rosenbrock1_x);
+    jacobian1[0].push_back(functions::rosenbrock1_y);
+    jacobian1[1].push_back(functions::rosenbrock2_x);
+    jacobian1[1].push_back(functions::rosenbrock2_y);
 
 
 
@@ -237,7 +362,7 @@ int main(){
     std::cout << "----------------------------------------------------------------------\n";
 
 
-
+    std::cout << "======================ZAD5=======================\n";
     std::vector<std::function<double(std::vector<double>)>> gn;
     gn.push_back(functions::gn1);
     gn.push_back(functions::gn2);
@@ -250,6 +375,16 @@ int main(){
 
 
 
+    stp = std::vector<double>{-2, 2};
+    point = optimize::gauss_newton(
+                           gn,
+                           jacobian,
+                           stp,
+                           10e-6,
+                           true);
+    std::cout << "Gauss - Newton (-2,2) >>> ";
+    print_point(point);
+    std::cout << "----------------------------------------------------------------------\n";
     stp = std::vector<double>{2, 2};
     point = optimize::gauss_newton(
                            gn,
@@ -257,13 +392,19 @@ int main(){
                            stp,
                            10e-6,
                            true);
-    std::cout << "Gauss - Newton >>> ";
+    std::cout << "Gauss - Newton (2,2) >>> ";
     print_point(point);
     std::cout << "----------------------------------------------------------------------\n";
-
-
-
-
+    stp = std::vector<double>{2, -2};
+    point = optimize::gauss_newton(
+                           gn,
+                           jacobian,
+                           stp,
+                           10e-6,
+                           true);
+    std::cout << "Gauss - Newton (2,-2) >>> ";
+    print_point(point);
+    std::cout << "----------------------------------------------------------------------\n";
 
                                                    
     return 0;

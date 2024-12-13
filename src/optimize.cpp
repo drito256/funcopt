@@ -34,7 +34,7 @@ std::pair<double, double> optimize::golden_search(
             eval_counter++;
         }
     }
-    std::cout << "Number of evaluations: " << eval_counter << std::endl;
+    // std::cout << "Number of evaluations: " << eval_counter << std::endl;
     return interval;
 }
 
@@ -91,7 +91,7 @@ std::vector<double> optimize::coord_search(std::function<double(std::vector<doub
     }while(!compare_points(prev_min, minimum, e));
 
 
-    std::cout << "Number of evaluations: " << eval_counter << std::endl;
+    // std::cout << "Number of evaluations: " << eval_counter << std::endl;
     return minimum;
 }
 
@@ -210,7 +210,7 @@ std::vector<std::vector<double>> optimize::nm_simplex(
         }
     } while (!nm_exit_condition(func, simplex, e));
 
-    std::cout << "Number of evaluations: " << eval_counter << std::endl;
+    // std::cout << "Number of evaluations: " << eval_counter << std::endl;
     return simplex;
 }
 
@@ -373,7 +373,7 @@ std::vector<double> optimize::hooke_jeeves(
         }
     }while(!hj_exit_condition(delta, e));
 
-    std::cout << "Number of evaluations: " << eval_counter << std::endl;
+    // std::cout << "Number of evaluations: " << eval_counter << std::endl;
     return xb;
 }
 
@@ -421,6 +421,9 @@ std::vector<double> optimize::gradient_desc(std::function<double(std::vector<dou
     std::vector<double> x = starting_point;
     std::vector<double> grad(x.size());
     std::vector<double> new_x(x.size());
+    std::vector<double> test_convergence_point(x.size());
+    test_convergence_point = starting_point;
+    int i = 1;
     do {
         for (int i = 0; i < x.size(); i++) {
             grad[i] = part_deriv[i](x);
@@ -446,6 +449,14 @@ std::vector<double> optimize::gradient_desc(std::function<double(std::vector<dou
                 new_x[i] = x[i] - grad[i];
             }
         }
+        if(i % 11 == 0){
+            if(func(new_x) >= func(test_convergence_point)){
+                std::cout << "Gradient descent doesnt converge, exiting function\n";
+                return new_x;
+            }
+            test_convergence_point = new_x;
+        }
+        i++;
         x = new_x;
 
     } while (!grad_desc_exit_condition(grad, e));
@@ -474,10 +485,13 @@ std::vector<double> optimize::newton_raphson(std::function<double(std::vector<do
                                   const bool golden_ratio_used){
 
     std::vector<double> x = starting_point;
+    std::vector<double> test_convergence_point = starting_point;
+    int i = 1;
     Matrix grad(x.size(), 1);
     Matrix hesse{x.size(), x.size()};
     Matrix delta{x.size(), 1};
     std::vector<double> new_x(x.size());
+    
     do {
         for (int i = 0; i < x.size(); i++) {
             grad(i, 0) = part_deriv[i](x);
@@ -508,6 +522,15 @@ std::vector<double> optimize::newton_raphson(std::function<double(std::vector<do
                 new_x[i] = x[i] + delta(i, 0);
             }
         }
+        if(i % 11 == 0){
+            if(func(new_x) >= func(test_convergence_point)){
+                std::cout << "Newton - Raphson doesnt converge, exiting function\n";
+                return new_x;
+            }
+            test_convergence_point = new_x;
+        }
+        i++;
+
         x = new_x;
 
     } while (!new_rap_exit_condition(delta, e));
@@ -531,6 +554,8 @@ std::vector<double> optimize::gauss_newton(
                                   const double e,
                                   const bool golden_ratio_used){
     std::vector<double> x = starting_point;
+    std::vector<double> test_convergence_point = starting_point;
+    int i = 1;
     Matrix jacobian{x.size(), x.size()};
     Matrix delta{x.size(), 1};
     Matrix G{x.size(), 1};
@@ -572,7 +597,15 @@ std::vector<double> optimize::gauss_newton(
                 new_x[i] = x[i] + delta(i, 0);
             }
         }
-        std::cout << x[0] << std::endl;
+        if(i % 11 == 0){
+            if(pow(funcs[1](new_x),2) + pow(funcs[0](new_x), 2) >= pow(funcs[1](test_convergence_point),2) + pow(funcs[0](test_convergence_point),2)){
+                std::cout << "Gauss newton doesnt converge, exiting function\n";
+                return new_x;
+            }
+            test_convergence_point = new_x;
+        }
+        i++;
+
         x = new_x;
     } while (!new_rap_exit_condition(delta, e)); // its the same exit condition as previous algo
     return x;
