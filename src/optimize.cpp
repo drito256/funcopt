@@ -2,6 +2,7 @@
 
 
 int eval_counter = 0;
+int grad_counter = 0;
 std::pair<double, double> optimize::golden_search(
                                     std::function<double(double)> func,
                                     std::pair<double, double> &interval,
@@ -98,26 +99,6 @@ std::vector<double> optimize::coord_search(std::function<double(std::vector<doub
 inline static bool optimize::compare_points(std::vector<double> p1,
                            std::vector<double> p2,
                            std::vector<double> e){
-    
-    /*double sum_p1 = 0, avg_p1 = 0;
-    double sum_p2 = 0, avg_p2 = 0;
-    double sum_e = 0, avg_e = 0;
-
-    // assuming p1 and p2 dimensions are same
-    for(int i = 0; i < p1.size(); i++){
-        sum_p1 += p1[i];
-        sum_p2 += p2[i];
-        sum_e += e[i];
-    }
-
-    avg_p1 = sum_p1 / p1.size();
-    avg_p2 = sum_p2 / p2.size();
-    avg_e = sum_e / e.size();
-
-    if(fabs(avg_p1 - avg_p2) < avg_e)
-        return true;
-    return false;*/
-
     for(int i = 0;i<e.size();i++){
         if(fabs(p1[i] - p2[i]) > e[i]){
             return false;
@@ -424,10 +405,12 @@ std::vector<double> optimize::gradient_desc(std::function<double(std::vector<dou
     std::vector<double> test_convergence_point(x.size());
     test_convergence_point = starting_point;
     int i = 1;
+    eval_counter = 0;
     do {
         for (int i = 0; i < x.size(); i++) {
             grad[i] = part_deriv[i](x);
         }
+        grad_counter++;
 
         if (golden_ratio_used) {
             auto line_search_func = [&](double lambda) {
@@ -451,7 +434,13 @@ std::vector<double> optimize::gradient_desc(std::function<double(std::vector<dou
         }
         if(i % 11 == 0){
             if(func(new_x) >= func(test_convergence_point)){
+                std::cout << "Num of func evaluations:" << eval_counter << "\n";
+                eval_counter = 0;
+                std::cout << "Num of gradient calculations:" << grad_counter << "\n";
+                grad_counter = 0;
+
                 std::cout << "Gradient descent doesnt converge, exiting function\n";
+                std::cout << "Calculated point might not be function minimum!\n";
                 return new_x;
             }
             test_convergence_point = new_x;
@@ -460,6 +449,9 @@ std::vector<double> optimize::gradient_desc(std::function<double(std::vector<dou
         x = new_x;
 
     } while (!grad_desc_exit_condition(grad, e));
+    std::cout << "Num of func evaluations:" << eval_counter << "\n";
+    std::cout << "Num of gradient calculations:" << grad_counter << "\n";
+    eval_counter = 0;
     return x;
 };
 
@@ -491,7 +483,9 @@ std::vector<double> optimize::newton_raphson(std::function<double(std::vector<do
     Matrix hesse{x.size(), x.size()};
     Matrix delta{x.size(), 1};
     std::vector<double> new_x(x.size());
-    
+    eval_counter = 0;
+    grad_counter = 0;
+    int hesse_counter = 0; 
     do {
         for (int i = 0; i < x.size(); i++) {
             grad(i, 0) = part_deriv[i](x);
@@ -499,6 +493,8 @@ std::vector<double> optimize::newton_raphson(std::function<double(std::vector<do
                 hesse(i,j) = hesse_matrix[i][j](x);
             }
         }
+        grad_counter++;
+        hesse_counter++;
         delta = hesse.inverse() * grad; 
         delta *= -1;
 
@@ -524,7 +520,17 @@ std::vector<double> optimize::newton_raphson(std::function<double(std::vector<do
         }
         if(i % 11 == 0){
             if(func(new_x) >= func(test_convergence_point)){
+                std::cout << "Num of func evaluations:" << eval_counter << "\n";
+                eval_counter = 0;
+                std::cout << "Num of gradient calculations:" << grad_counter << "\n";
+                grad_counter = 0;
+                std::cout << "Num of hesse calculations:" << hesse_counter << "\n";
+                hesse_counter = 0;
+
+
+
                 std::cout << "Newton - Raphson doesnt converge, exiting function\n";
+                std::cout << "Calculated point might not be function minimum!\n";
                 return new_x;
             }
             test_convergence_point = new_x;
@@ -534,6 +540,13 @@ std::vector<double> optimize::newton_raphson(std::function<double(std::vector<do
         x = new_x;
 
     } while (!new_rap_exit_condition(delta, e));
+    std::cout << "Num of func evaluations:" << eval_counter << "\n";
+    eval_counter = 0;
+    std::cout << "Num of gradient calculations:" << grad_counter << "\n";
+    grad_counter = 0;
+    std::cout << "Num of hesse calculations:" << hesse_counter << "\n";
+    hesse_counter = 0;
+
     return x;
 };
 
@@ -560,6 +573,9 @@ std::vector<double> optimize::gauss_newton(
     Matrix delta{x.size(), 1};
     Matrix G{x.size(), 1};
     std::vector<double> new_x(x.size());
+    eval_counter = 0;
+    grad_counter = 0;
+
     do {
         for (int i = 0; i < x.size(); i++) {
             for(int j=0; j < x.size(); j++){
@@ -567,12 +583,13 @@ std::vector<double> optimize::gauss_newton(
             }
             G(i,0) = funcs[i](x);
         }
+        grad_counter++;
+
         delta = jacobian.inverse() * G; 
         delta *= -1;
 
         if (golden_ratio_used) {  
             auto line_search_func = [&](double lambda) {
-            // Compute the function value for a given lambda
             std::vector<double> temp_x = x;
             for (int i = 0; i < x.size(); i++) {
                 temp_x[i] -= lambda * delta(i, 0);
@@ -584,10 +601,9 @@ std::vector<double> optimize::gauss_newton(
             }
             return func_value;
         };
-            std::pair<double, double> interval = golden_search(line_search_func, 0.0, 1.0); // Interval can be tuned
-            double lambda = (interval.first + interval.second) / 2; // Optimal lambda
+            std::pair<double, double> interval = golden_search(line_search_func, 0.0, 1.0);
+            double lambda = (interval.first + interval.second) / 2;
 
-            // Update x using the computed lambda
             for (int i = 0; i < x.size(); i++) {
                 new_x[i] = x[i] - lambda * delta(i, 0);
             }
@@ -599,7 +615,13 @@ std::vector<double> optimize::gauss_newton(
         }
         if(i % 11 == 0){
             if(pow(funcs[1](new_x),2) + pow(funcs[0](new_x), 2) >= pow(funcs[1](test_convergence_point),2) + pow(funcs[0](test_convergence_point),2)){
+                std::cout << "Num of func evaluations:" << eval_counter << "\n";
+                eval_counter = 0;
+                std::cout << "Num of gradient calculations:" << grad_counter << "\n";
+                grad_counter = 0;
+        
                 std::cout << "Gauss newton doesnt converge, exiting function\n";
+                std::cout << "Calculated point might not be function minimum!\n";
                 return new_x;
             }
             test_convergence_point = new_x;
@@ -608,6 +630,12 @@ std::vector<double> optimize::gauss_newton(
 
         x = new_x;
     } while (!new_rap_exit_condition(delta, e)); // its the same exit condition as previous algo
+                
+    std::cout << "Num of func evaluations:" << eval_counter << "\n";
+    eval_counter = 0;
+    std::cout << "Num of gradient calculations:" << grad_counter << "\n";
+    grad_counter = 0;
+        
     return x;
 
 };

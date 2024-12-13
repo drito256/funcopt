@@ -141,6 +141,68 @@ namespace functions{
         return 1;
     };
 
+    std::function<double(std::vector<double>)> gn_large1 = [](std::vector<double> x){
+        return x[0] * exp(x[1]) + x[2] - 3;
+    };
+    std::function<double(std::vector<double>)> gn_large2 = [](std::vector<double> x){
+        return x[0] * exp(x[1] * 2) + x[2] - 4;
+    };
+    std::function<double(std::vector<double>)> gn_large3 = [](std::vector<double> x){
+        return x[0] * exp(x[1] * 3) + x[2] - 4;
+    };
+    std::function<double(std::vector<double>)> gn_large4 = [](std::vector<double> x){
+        return x[0] * exp(x[1] * 5) + x[2] - 5;
+    };
+    std::function<double(std::vector<double>)> gn_large5 = [](std::vector<double> x){
+        return x[0] * exp(x[1] * 6) + x[2] - 6;
+    };
+    std::function<double(std::vector<double>)> gn_large6 = [](std::vector<double> x){
+        return x[0] * exp(x[1] * 7) + x[2] - 8;
+    };
+
+     std::function<double(std::vector<double>)> jac_large11 = [](std::vector<double> x){
+    return exp(x[1]);
+    };
+    std::function<double(std::vector<double>)> jac_large21 = [](std::vector<double> x){
+    return exp(2*x[1]);
+    };
+    std::function<double(std::vector<double>)> jac_large31 = [](std::vector<double> x){
+    return exp(3*x[1]);
+    };
+    std::function<double(std::vector<double>)> jac_large41 = [](std::vector<double> x){
+    return exp(5*x[1]);
+    };
+    std::function<double(std::vector<double>)> jac_large51 = [](std::vector<double> x){
+    return exp(6*x[1]);
+    };
+    std::function<double(std::vector<double>)> jac_large61 = [](std::vector<double> x){
+    return exp(7*x[1]);
+    };
+    std::function<double(std::vector<double>)> jac_large12 = [](std::vector<double> x){
+    return x[0] * exp(x[1]);
+    };
+    std::function<double(std::vector<double>)> jac_large22 = [](std::vector<double> x){
+    return 2 * x[0] * exp(x[1] * 2);
+    };
+    std::function<double(std::vector<double>)> jac_large32 = [](std::vector<double> x){
+    return 3 * x[0] * exp(x[1] * 3);
+    };
+    std::function<double(std::vector<double>)> jac_large42 = [](std::vector<double> x){
+    return 5 * x[0] * exp(x[1] * 5);
+    };
+    std::function<double(std::vector<double>)> jac_large52 = [](std::vector<double> x){
+    return 6 * x[0] * exp(x[1] * 6);
+    };
+    std::function<double(std::vector<double>)> jac_large62 = [](std::vector<double> x){
+    return 7 * x[0] * exp(x[1] * 7);
+    };
+
+     std::function<double(std::vector<double>)> jac_last = [](std::vector<double> x){
+        return 1;
+    };
+
+
+
 
 }
 
@@ -204,7 +266,7 @@ int main(){
 
 
 
-    std::cout << "===================ZAD2===================" << std::endl;
+    std::cout << "\n===================ZAD2===================" << std::endl;
     std::vector<std::function<double(std::vector<double>)>> partial2;
     partial2.push_back(functions::rosenbrock_x);
     partial2.push_back(functions::rosenbrock_y);
@@ -275,7 +337,7 @@ int main(){
     std::cout << "----------------------------------------------\n";
 
 
-    std::cout << "========================ZAD3============================\n";
+    std::cout << "\n========================ZAD3============================\n";
     
     stp.clear();
     stp = {3, 3}; 
@@ -298,6 +360,7 @@ int main(){
                            false);
     std::cout << "Newton - Raphson without lambda optimisation (3,3) >>> ";
     print_point(point);
+    std::cout << "----------------------------------------------\n";
     point = optimize::newton_raphson(
                            functions::f4,
                            partial2,
@@ -320,7 +383,7 @@ int main(){
                            false);
     std::cout << "Newton - Raphson without lambda optimisation (1,2) >>> ";
     print_point(point);
-
+    std::cout << "----------------------------------------------\n";
     point = optimize::newton_raphson(
                            functions::f4,
                            partial2,
@@ -337,7 +400,7 @@ int main(){
 
     
     
-    std::cout << "========================ZAD4==============================\n";
+    std::cout << "\n========================ZAD4==============================\n";
     std::vector<std::function<double(std::vector<double>)>> gn1;
     gn1.push_back(functions::rosenbrock1);
     gn1.push_back(functions::rosenbrock2);
@@ -362,7 +425,7 @@ int main(){
     std::cout << "----------------------------------------------------------------------\n";
 
 
-    std::cout << "======================ZAD5=======================\n";
+    std::cout << "\n======================ZAD5=======================\n";
     std::vector<std::function<double(std::vector<double>)>> gn;
     gn.push_back(functions::gn1);
     gn.push_back(functions::gn2);
@@ -405,6 +468,52 @@ int main(){
     std::cout << "Gauss - Newton (2,-2) >>> ";
     print_point(point);
     std::cout << "----------------------------------------------------------------------\n";
+    gn.clear();
+    gn.push_back(functions::gn_large1);
+    gn.push_back(functions::gn_large2);
+    gn.push_back(functions::gn_large3);
+    gn.push_back(functions::gn_large4);
+    gn.push_back(functions::gn_large5);
+    gn.push_back(functions::gn_large6);
+
+    std::vector<std::vector<std::function<double(std::vector<double>)>>> jacobian_large(6);
+
+    jacobian_large[0].push_back(functions::jac_large11);
+    jacobian_large[0].push_back(functions::jac_large12);
+    jacobian_large[0].push_back(functions::jac_last);
+    jacobian_large[1].push_back(functions::jac_large21);
+    jacobian_large[1].push_back(functions::jac_large22);
+    jacobian_large[1].push_back(functions::jac_last);
+    jacobian_large[2].push_back(functions::jac_large31);
+    jacobian_large[2].push_back(functions::jac_large32);
+    jacobian_large[2].push_back(functions::jac_last);
+    jacobian_large[3].push_back(functions::jac_large41);
+    jacobian_large[3].push_back(functions::jac_large42);
+    jacobian_large[3].push_back(functions::jac_last);
+    jacobian_large[4].push_back(functions::jac_large51);
+    jacobian_large[4].push_back(functions::jac_large52);
+    jacobian_large[4].push_back(functions::jac_last);
+    jacobian_large[5].push_back(functions::jac_large61);
+    jacobian_large[5].push_back(functions::jac_large62);
+    jacobian_large[5].push_back(functions::jac_last);
+    
+    
+    
+    
+    
+    stp = std::vector<double>{1, 1, 1};
+    point = optimize::gauss_newton(
+                           gn,
+                           jacobian_large,
+                           stp,
+                           10e-6,
+                           true);
+    std::cout << "\n================ZAD6================\n";
+    std::cout << "Gauss - Newton (1, 1, 1) >>> ";
+    print_point(point);
+    std::cout << "----------------------------------------------------------------------\n";
+
+ 
 
                                                    
     return 0;
