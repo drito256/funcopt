@@ -5,6 +5,7 @@
 #include <cmath>
 #include <vector>
 #include <functional>
+#include <numeric>
 
 #include "matrix.h"
 
@@ -62,8 +63,42 @@ namespace optimize{
                                       const double e = epsilon,
                                       const bool golden_ratio_used = true);
 
+    // -------------------------------------------------------------------
+    // ---------------- ALGOS THAT WORK WITH CONSTRAINTS -----------------
+    // -------------------------------------------------------------------
+     std::vector<std::vector<double>> box(
+                                   std::function<double(std::vector<double>)> func,
+                                   std::vector<std::function<bool(std::vector<double>)>> impl_constraints,
+                                   std::pair<double, double> expl_constraint,
+                                   const std::vector<double> &starting_point,
+                                   const double alpha = 1,
+                                   const double beta = 0.5,
+                                   const double gamma = 2,
+                                   const double sigma = 0.5,
+                                   const double e = epsilon);
+
+    std::vector<double> penaltyBarrier(
+    std::function<double(std::vector<double>)> f,
+    std::vector<std::function<bool(std::vector<double>)>> &g,
+    std::vector<std::function<double(std::vector<double>)>> &h,
+    double t0,
+    const std::vector<double> &x0,
+    double tolerance);
+
+    std::function<double(std::vector<double>)> getTransformedFunction(
+    std::function<double(std::vector<double>)> f,
+    std::vector<std::function<bool(std::vector<double>)>> &g,
+    std::vector<std::function<double(std::vector<double>)>> &h,
+    double t);
 
 
+    double G(const std::vector<std::function<bool(std::vector<double>)>> &g,
+         const std::vector<double> &x);
+
+    std::vector<double> findInteriorPoint(
+    const std::vector<std::function<bool(std::vector<double>)>> &g,
+    const std::vector<double> &x0,
+    double tolerance);
     // ========================   PRIVATE FUNCTIONS ===============================
     // helper functions for coord_search
     inline static bool compare_points(std::vector<double> p1,

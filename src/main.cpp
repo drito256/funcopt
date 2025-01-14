@@ -1,15 +1,41 @@
 #include "../include/optimize.h"
 
 namespace functions{
+
+    // implicit limits
+    std::function<bool(std::vector<double>)> ogr1 = [](std::vector<double> x){
+        return x[1] - x[0] >= 0;
+    };
+
+    std::function<bool(std::vector<double>)> ogr2 = [](std::vector<double> x){
+        return 2 - x[0] >= 0;
+    };
+
+    std::function<bool(std::vector<double>)> ogr3 = [](std::vector<double> x){
+        return 3 - x[0] - x[1] >= 0;
+    };
+    std::function<bool(std::vector<double>)> ogr4 = [](std::vector<double> x){
+        return 3 + 1.5 * x[0] - x[1] >= 0;
+    };
+    std::function<bool(std::vector<double>)> ogr5 = [](std::vector<double> x){
+        return x[1] - 1 == 0;
+    };
+
+
+
     std::function<double(double)> parabolic = [](double x){
         return (x - 3) * (x - 3);
     };
     std::function<double(std::vector<double>)> parabolic2 = [](std::vector<double> x){
         return (x[0] - 2) * (x[0] - 2) + (x[1] + 3) * (x[1] + 3);
     };
+    std::function<double(std::vector<double>)> parabolic3 = [](std::vector<double> x){
+        return (x[0] - 3) * (x[0] - 3) + (x[1]) * (x[1]);
+    };
 
-
-
+    std::function<double(std::vector<double>)> f2 = [](std::vector<double> x){
+        return (x[0] - 4) * (x[0] - 4) + 4 * (x[1] - 2) * (x[1] - 2);
+    };
 
     // Rosenbrock function / Rosenbrock seperated into 2 funcs / partial derivatives
     std::function<double(std::vector<double>)> rosenbrock = [](std::vector<double> x){
@@ -61,10 +87,6 @@ namespace functions{
         return sum;
     };
 
-    std::function<double(std::vector<double>)> f2 = [](std::vector<double> x){
-        return (x[0] - 4) * (x[0] - 4) + 4 * (x[1] - 2) * (x[1] - 2);
-    };
-    
     std::function<double(std::vector<double>)> f4 = [](std::vector<double> x){
         return pow(x[0], 4) / 4 - x[0] * x[0] + 2 * x[0] + pow(x[1] - 1, 2);
     };
@@ -206,9 +228,6 @@ namespace functions{
 
 }
 
-
-
-
 void print_interval(std::pair<double, double> &interval){
     std::cout << "Found interval: [ " << interval.first << " , " 
                                      << interval.second << " ]\n";
@@ -241,280 +260,83 @@ int main(){
     
 
     std::cout << "===================ZAD1===================" << std::endl;
-    std::vector<std::function<double(std::vector<double>)>> partial;
-    partial.push_back(functions::partial1);
-    partial.push_back(functions::partial2);
-    std::vector<double> stp = std::vector<double>{0, 0};
-    std::vector<double> point = optimize::gradient_desc(
-                           functions::parabolic2,
-                           partial,
-                           stp,
-                           10e-6,
-                           false);
-    std::cout << "Gradient descent without golden search>>> ";
-    print_point(point);
-    std::cout << "--------------------------------------------\n";
-    point = optimize::gradient_desc(
-                           functions::parabolic2,
-                           partial,
-                           stp,
-                           10e-6,
-                           true);
-    std::cout << "Gradient descent with golden search>>> ";
-    print_point(point);
-    std::cout << "-------------------------------------------\n";
+    std::vector<std::function<bool(std::vector<double>)>> ogr;
+    std::vector<double> stp{-1.9, 2};
+    ogr.push_back(functions::ogr1);
+    ogr.push_back(functions::ogr2);
+
+    std::vector<std::vector<double>> simpl = optimize::box(functions::rosenbrock,
+                                                           ogr,
+                                                           std::make_pair(-100,100),
+                                                           stp
+                                                           );
+    print_simplex(simpl);
+    stp = {0.1, 0.3};
+    std::vector<std::vector<double>> simpl2 = optimize::box(functions::f2,
+                                                           ogr,
+                                                           std::make_pair(-100,100),
+                                                           stp
+                                                           );
 
 
-
-    std::cout << "\n===================ZAD2===================" << std::endl;
-    std::vector<std::function<double(std::vector<double>)>> partial2;
-    partial2.push_back(functions::rosenbrock_x);
-    partial2.push_back(functions::rosenbrock_y);
-    std::vector<std::vector<std::function<double(std::vector<double>)>>> hesse(2);
-    hesse[0].push_back(functions::rosenbrock_xx);
-    hesse[0].push_back(functions::rosenbrock_xy);
-    hesse[1].push_back(functions::rosenbrock_xy);
-    hesse[1].push_back(functions::rosenbrock_yy);
-    stp.clear();
+    print_simplex(simpl2);
+    std::cout << "===================ZAD2===================" << std::endl;
+    std::vector<std::function<double(std::vector<double>)>> ogr_eq;
     stp = {-1.9, 2};
-
-    point = optimize::gradient_desc(
-                           functions::rosenbrock,
-                           partial2,
-                           stp,
-                           10e-6,
-                           true);
-    std::cout << "Gradient descent >>> ";
-    print_point(point);
-    std::cout << "-------------------------------------------------\n";
+    std::vector<double> p1 = optimize::penaltyBarrier(functions::rosenbrock,
+                                                           ogr,
+                                                           ogr_eq,
+                                                           1,
+                                                           stp,
+                                                           1e-6);
 
 
-    stp = std::vector<double>{0,0};
-    point = optimize::newton_raphson(
-                           functions::rosenbrock,
-                           partial2,
-                           hesse,
-                           stp,
-                           10e-6,
-                           true);
-    std::cout << "Newton - Raphson >>> ";
-    print_point(point);
-    std::cout << "----------------------------------------------\n";
-    
-    stp = {0.1, 0.3}; 
-    partial2.clear();
-    partial2.push_back(functions::f2_partial1);
-    partial2.push_back(functions::f2_partial2);
-    hesse[0].clear();
-    hesse[1].clear();
-    hesse[0].push_back(functions::hesse1);
-    hesse[0].push_back(functions::hesse2);
-    hesse[1].push_back(functions::hesse3);
-    hesse[1].push_back(functions::hesse4);
+    print_point(p1);
 
+    stp = {0.1, 0.3};
+    std::vector<double> p2 = optimize::penaltyBarrier(functions::f2,
+                                                           ogr,
+                                                           ogr_eq,
+                                                           1,
+                                                           stp,
+                                                           1e-6);
 
-    point = optimize::gradient_desc(
-                           functions::f2,
-                           partial2,
-                           stp,
-                           10e-6,
-                           true);
-    std::cout << "Gradient descent >>> ";
-    print_point(point);
-    std::cout << "-------------------------------------------------\n";
+    print_point(p2);
 
+    stp = {0, 2}; //tocka iz koje nalazi rj
+    p2 = optimize::penaltyBarrier(functions::f2,
+                                                           ogr,
+                                                           ogr_eq,
+                                                           1,
+                                                           stp,
+                                                           1e-6);
 
-    stp = std::vector<double>{0,0};
-    point = optimize::newton_raphson(
-                           functions::f2,
-                           partial2,
-                           hesse,
-                           stp,
-                           10e-6,
-                           true);
-    std::cout << "Newton - Raphson >>> ";
-    print_point(point);
-    std::cout << "----------------------------------------------\n";
+    print_point(p2);
+    std::cout << "===================ZAD3===================" << std::endl;
+    ogr.clear();
+    ogr.push_back(functions::ogr3);
+    ogr.push_back(functions::ogr4);
 
+    ogr_eq.clear();
+    ogr_eq.push_back(functions::ogr5);
+    stp = {0, 0};
+    std::vector<double> p3 = optimize::penaltyBarrier(functions::parabolic3,
+                                                           ogr,
+                                                           ogr_eq,
+                                                           1,
+                                                           stp,
+                                                           1e-6);
+    print_point(p3); 
 
-    std::cout << "\n========================ZAD3============================\n";
-    
-    stp.clear();
-    stp = {3, 3}; 
-    partial2.clear();
-    partial2.push_back(functions::f4_x);
-    partial2.push_back(functions::f4_y);
-    hesse[0].clear();
-    hesse[1].clear();
-    hesse[0].push_back(functions::f4_xx);
-    hesse[0].push_back(functions::f4_xy);
-    hesse[1].push_back(functions::f4_xy);
-    hesse[1].push_back(functions::f4_yy);
-
-    point = optimize::newton_raphson(
-                           functions::f4,
-                           partial2,
-                           hesse,
-                           stp,
-                           10e-6,
-                           false);
-    std::cout << "Newton - Raphson without lambda optimisation (3,3) >>> ";
-    print_point(point);
-    std::cout << "----------------------------------------------\n";
-    point = optimize::newton_raphson(
-                           functions::f4,
-                           partial2,
-                           hesse,
-                           stp,
-                           10e-6,
-                           true);
-
-    std::cout << "Newton - Raphson with lambda optimisation (3,3) >>> ";
-    print_point(point);
-
-    std::cout << "----------------------------------------------\n";
-    stp = std::vector<double>{1,2};
-    point = optimize::newton_raphson(
-                           functions::f4,
-                           partial2,
-                           hesse,
-                           stp,
-                           10e-6,
-                           false);
-    std::cout << "Newton - Raphson without lambda optimisation (1,2) >>> ";
-    print_point(point);
-    std::cout << "----------------------------------------------\n";
-    point = optimize::newton_raphson(
-                           functions::f4,
-                           partial2,
-                           hesse,
-                           stp,
-                           10e-6,
-                           true);
-
-    std::cout << "Newton - Raphson with lambda optimisation (1,2) >>> ";
-    print_point(point);
-
-    std::cout << "----------------------------------------------\n";
-    
-
-    
-    
-    std::cout << "\n========================ZAD4==============================\n";
-    std::vector<std::function<double(std::vector<double>)>> gn1;
-    gn1.push_back(functions::rosenbrock1);
-    gn1.push_back(functions::rosenbrock2);
-
-    std::vector<std::vector<std::function<double(std::vector<double>)>>> jacobian1(2);
-    jacobian1[0].push_back(functions::rosenbrock1_x);
-    jacobian1[0].push_back(functions::rosenbrock1_y);
-    jacobian1[1].push_back(functions::rosenbrock2_x);
-    jacobian1[1].push_back(functions::rosenbrock2_y);
-
-
-
-    stp = std::vector<double>{-1.9, 2};
-    point = optimize::gauss_newton(
-                           gn1,
-                           jacobian1,
-                           stp,
-                           10e-6,
-                           true);
-    std::cout << "Gauss - Newton >>> ";
-    print_point(point);
-    std::cout << "----------------------------------------------------------------------\n";
-
-
-    std::cout << "\n======================ZAD5=======================\n";
-    std::vector<std::function<double(std::vector<double>)>> gn;
-    gn.push_back(functions::gn1);
-    gn.push_back(functions::gn2);
-
-    std::vector<std::vector<std::function<double(std::vector<double>)>>> jacobian(2);
-    jacobian[0].push_back(functions::jac1);
-    jacobian[0].push_back(functions::jac2);
-    jacobian[1].push_back(functions::jac3);
-    jacobian[1].push_back(functions::jac4);
-
-
-
-    stp = std::vector<double>{-2, 2};
-    point = optimize::gauss_newton(
-                           gn,
-                           jacobian,
-                           stp,
-                           10e-6,
-                           true);
-    std::cout << "Gauss - Newton (-2,2) >>> ";
-    print_point(point);
-    std::cout << "----------------------------------------------------------------------\n";
-    stp = std::vector<double>{2, 2};
-    point = optimize::gauss_newton(
-                           gn,
-                           jacobian,
-                           stp,
-                           10e-6,
-                           true);
-    std::cout << "Gauss - Newton (2,2) >>> ";
-    print_point(point);
-    std::cout << "----------------------------------------------------------------------\n";
-    stp = std::vector<double>{2, -2};
-    point = optimize::gauss_newton(
-                           gn,
-                           jacobian,
-                           stp,
-                           10e-6,
-                           true);
-    std::cout << "Gauss - Newton (2,-2) >>> ";
-    print_point(point);
-    std::cout << "----------------------------------------------------------------------\n";
-    gn.clear();
-    gn.push_back(functions::gn_large1);
-    gn.push_back(functions::gn_large2);
-    gn.push_back(functions::gn_large3);
-    gn.push_back(functions::gn_large4);
-    gn.push_back(functions::gn_large5);
-    gn.push_back(functions::gn_large6);
-
-    std::vector<std::vector<std::function<double(std::vector<double>)>>> jacobian_large(6);
-
-    jacobian_large[0].push_back(functions::jac_large11);
-    jacobian_large[0].push_back(functions::jac_large12);
-    jacobian_large[0].push_back(functions::jac_last);
-    jacobian_large[1].push_back(functions::jac_large21);
-    jacobian_large[1].push_back(functions::jac_large22);
-    jacobian_large[1].push_back(functions::jac_last);
-    jacobian_large[2].push_back(functions::jac_large31);
-    jacobian_large[2].push_back(functions::jac_large32);
-    jacobian_large[2].push_back(functions::jac_last);
-    jacobian_large[3].push_back(functions::jac_large41);
-    jacobian_large[3].push_back(functions::jac_large42);
-    jacobian_large[3].push_back(functions::jac_last);
-    jacobian_large[4].push_back(functions::jac_large51);
-    jacobian_large[4].push_back(functions::jac_large52);
-    jacobian_large[4].push_back(functions::jac_last);
-    jacobian_large[5].push_back(functions::jac_large61);
-    jacobian_large[5].push_back(functions::jac_large62);
-    jacobian_large[5].push_back(functions::jac_last);
-    
-    
-    
-    
-    
-    stp = std::vector<double>{1, 1, 1};
-    point = optimize::gauss_newton(
-                           gn,
-                           jacobian_large,
-                           stp,
-                           10e-6,
-                           true);
-    std::cout << "\n================ZAD6================\n";
-    std::cout << "Gauss - Newton (1, 1, 1) >>> ";
-    print_point(point);
-    std::cout << "----------------------------------------------------------------------\n";
-
- 
-
+    stp = {5,5};
+    std::vector<double> p_interior = optimize::findInteriorPoint(ogr, stp, 1e-6);
+    p3 = optimize::penaltyBarrier(functions::parabolic3,
+                                                           ogr,
+                                                           ogr_eq,
+                                                           1,
+                                                           p_interior,
+                                                           1e-6);
+   print_point(p3); 
                                                    
     return 0;
 }

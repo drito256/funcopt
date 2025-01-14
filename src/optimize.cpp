@@ -639,3 +639,230 @@ std::vector<double> optimize::gauss_newton(
     return x;
 
 };
+
+
+std::vector<std::vector<double>> optimize::box(
+                              std::function<double(std::vector<double>)> func,
+                              std::vector<std::function<bool(std::vector<double>)>> impl_constraints,
+                              std::pair<double, double> exp_constraint,
+                              const std::vector<double> &starting_point,
+                              const double alpha,
+                              const double beta,
+                              const double gamma,
+                              const double sigma,
+                              const double e){
+    const size_t n = starting_point.size();
+
+    // check starting point
+    if (!std::all_of(impl_constraints.begin(), impl_constraints.end(), [&](const auto &constraint) {
+            return constraint(starting_point);
+        })) {
+        throw std::invalid_argument("Starting point violates implicit constraints.");
+    }
+
+    std::srand(std::time(nullptr));
+
+    // explicit const
+    const double Xd = exp_constraint.first;
+    const double Xg = exp_constraint.second;
+
+    std::vector<double> Xc = starting_point;
+    std::vector<std::vector<double>> points(2 * n, std::vector<double>(n));
+
+    // generate 2n points within explicit constraints
+    for (size_t t = 0; t < 2 * n; ++t) {
+        do {
+            for (size_t i = 0; i < n; ++i) {
+                double R = static_cast<double>(std::rand()) / RAND_MAX;
+                points[t][i] = Xd + R * (Xg - Xd);
+            }
+
+            // check implicit constraints
+            bool valid = std::all_of(impl_constraints.begin(), impl_constraints.end(), [&](const auto &constraint) {
+                return constraint(points[t]);
+            });
+
+            if (valid) break;
+
+            // adjust point towards centroid if not valid
+            for (size_t i = 0; i < n; ++i) {
+                points[t][i] = 0.5 * (points[t][i] + Xc[i]);
+            }
+        } while (true);
+
+        // update centroid
+        for (size_t i = 0; i < n; ++i) {
+            Xc[i] = (Xc[i] * t + points[t][i]) / (t + 1);
+        }
+    }
+
+    while (true) {
+        // worst and second-worst points
+        size_t h = 0, h2 = 0;
+        for (size_t i = 1; i < 2 * n; ++i) {
+            if (func(points[i]) > func(points[h])) {
+                h2 = h;
+                h = i;
+            } else if (func(points[i]) > func(points[h2]) && i != h) {
+                h2 = i;
+            }
+        }
+
+        // centroid calc
+        for (size_t i = 0; i < n; ++i) {
+            Xc[i] = 0.0;
+            for (size_t j = 0; j < 2 * n; ++j) {
+                if (j != h) {
+                    Xc[i] += points[j][i];
+                }
+            }
+            Xc[i] /= (2 * n - 1);
+        }
+
+        // reflection
+        std::vector<double> Xr(n);
+        for (size_t i = 0; i < n; ++i) {
+            Xr[i] = (1 + alpha) * Xc[i] - alpha * points[h][i];
+        }
+
+        // check xr is within explicit constraints
+        for (size_t i = 0; i < n; ++i) {
+            if (Xr[i] < Xd) Xr[i] = Xd;
+            if (Xr[i] > Xg) Xr[i] = Xg;
+        }
+
+        // check implicit
+        while (!std::all_of(impl_constraints.begin(), impl_constraints.end(), [&](const auto &constraint) {
+            return constraint(Xr);
+        })) {
+            for (size_t i = 0; i < n; ++i) {
+                Xr[i] = 0.5 * (Xr[i] + Xc[i]);
+            }
+        }
+
+        if (func(Xr) > func(points[h2])) {
+            for (size_t i = 0; i < n; ++i) {
+                Xr[i] = 0.5 * (Xr[i] + Xc[i]);
+            }
+        }
+
+        // replace worst
+        points[h] = Xr;
+
+        // exit cond
+        double max_diff = 0.0;
+        for (size_t i = 0; i < 2 * n; ++i) {
+            max_diff = std::max(max_diff, std::fabs(func(points[i]) - func(points[h])));
+        }
+        if (max_diff < e) break;
+    }
+
+    return points;
+
+}
+
+std::function<double(std::vector<double>)> optimize::getTransformedFunction(
+    std::function<double(std::vector<double>)> f,
+    std::vector<std::function<bool(std::vector<double>)>> &g,
+    std::vector<std::function<double(std::vector<double>)>> &h,
+    double t) {
+
+    return [f, g, h, t](const std::vector<double> &x) -> double {
+        double result = f(x);
+
+        // Penalize for inequality constraints
+        for (const auto &gi : g) {
+            double gv = gi(x);
+            if (gv < 0) {
+                return std::numeric_limits<double>::infinity(); // Constraint violated
+            } else {
+                result -= (1.0 / t) * std::log(gv);
+            }
+        }
+
+        // Penalize for equality constraints
+        for (const auto &hi : h) {
+            double hv = hi(x);
+            result += t * hv * hv;
+        }
+
+        return result;
+    };   
+
+}
+
+std::vector<double> optimize::penaltyBarrier(
+    std::function<double(std::vector<double>)> f,
+    std::vector<std::function<bool(std::vector<double>)>> &g,
+    std::vector<std::function<double(std::vector<double>)>> &h,
+    double t0,
+    const std::vector<double> &x0,
+    double tolerance) {
+
+    std::vector<double> x = x0;
+    double t = t0;
+
+    while (true) {
+        auto F = getTransformedFunction(f, g, h, t);
+
+        std::vector<double> step_sizes(x0.size(), 0.1);
+        std::vector<double> x_new = hooke_jeeves(F, x, step_sizes);
+
+        if(std::inner_product(x.begin(), x.end(), x_new.begin(), 0.0,
+                              std::plus<>(), [](double xi, double xj){
+           return std::abs(xi - xj); }) < tolerance){
+            break;
+        }
+        x = x_new;
+        t *= 10;
+    }
+
+    return x;
+}
+
+double optimize::G(const std::vector<std::function<bool(std::vector<double>)>> &g,
+         const std::vector<double> &x) {
+    double penalty = 0.0;
+    for (const auto &gi : g) {
+        double gv = gi(x);
+        if (gv < 0) {
+            penalty -= gv; // Add the violated constraint penalty
+        }
+    }
+    return penalty;
+}
+
+// Function to find an interior point
+std::vector<double> optimize::findInteriorPoint(
+    const std::vector<std::function<bool(std::vector<double>)>> &g,
+    const std::vector<double> &x0,
+    double tolerance){
+
+    std::vector<double> x = x0;
+
+    while (true) {
+        std::vector<double> x_prev = x;
+
+        // Define G as a function to minimize
+        auto G_func = [&g](const std::vector<double> &x) -> double {
+            return G(g, x);
+        };
+
+        // Step sizes for Hooke-Jeeves
+        std::vector<double> step_sizes(x0.size(), 0.1);
+
+        // Use Hooke-Jeeves to minimize G
+        x = optimize::hooke_jeeves(G_func, x, step_sizes);
+
+        // Stopping condition
+        double diff = std::inner_product(
+            x.begin(), x.end(), x_prev.begin(), 0.0,
+            std::plus<>(), [](double xi, double xj) { return std::abs(xi - xj); });
+
+        if (diff < tolerance) {
+            break;
+        }
+    }
+
+    return x;
+}
